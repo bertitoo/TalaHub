@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "330786486648",
+    "project_id": "talahubalbertomv",
+    "storage_bucket": "talahubalbertomv.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:330786486648:android:1f6b6f218b575ca759b08d",
+        "android_client_info": {
+          "package_name": "com.talahub.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDmYegleb9oSVJnX-770-UHozYT1bmAmx8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
