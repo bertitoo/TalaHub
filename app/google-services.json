@@ -12,7 +12,20 @@
           "package_name": "com.talahub.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "330786486648-9qnugtgjmrr3va6e3evfv6jimqc2ik4l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.talahub.app",
+            "certificate_hash": "e632c53f8801841e1a5ae43abb536c8afe7bd474"
+          }
+        },
+        {
+          "client_id": "330786486648-peos6q746vo5pvp6vptq29v0vi23ukfc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDmYegleb9oSVJnX-770-UHozYT1bmAmx8"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "330786486648-peos6q746vo5pvp6vptq29v0vi23ukfc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
