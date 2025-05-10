@@ -1,6 +1,7 @@
 package com.talahub.app;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -71,25 +72,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // 📩 MOSTRAR DATOS DEL USUARIO EN EL HEADER DEL DRAWER
-        View headerView = navigationView.getHeaderView(0);
-        TextView userName = headerView.findViewById(R.id.textView);
-        TextView userEmail = headerView.findViewById(R.id.user_email);
-        ImageView userPhoto = headerView.findViewById(R.id.imageView);
+        // Mostrar info de usuario en el panel lateral
+        actualizarHeaderUsuario();
+
+        // Logout
+        NavigationView navView = binding.navView;
+        View headerView = navView.getHeaderView(0);
         Button logoutButton = headerView.findViewById(R.id.logout_button);
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            userEmail.setText(user.getEmail());
-            userName.setText(user.getDisplayName() != null ? user.getDisplayName() : "Usuario");
-            if (user.getPhotoUrl() != null) {
-                Picasso.get().load(user.getPhotoUrl()).into(userPhoto);
-            } else {
-                userPhoto.setImageResource(R.drawable.user_placeholder);
-            }
-        }
-
-        // 🔐 CERRAR SESIÓN
         mGoogleSignInClient = GoogleSignIn.getClient(this,
                 new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                         .requestEmail()
@@ -104,6 +94,35 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void actualizarHeaderUsuario() {
+        NavigationView navigationView = binding.navView;
+        View headerView = navigationView.getHeaderView(0);
+        TextView userName = headerView.findViewById(R.id.textView);
+        TextView userEmail = headerView.findViewById(R.id.user_email);
+        ImageView userPhoto = headerView.findViewById(R.id.imageView);
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            SharedPreferences prefs = getSharedPreferences("talahub_settings", MODE_PRIVATE);
+            boolean mostrarCorreo = prefs.getBoolean("show_email", true);
+
+            if (mostrarCorreo && user.getEmail() != null) {
+                userEmail.setText(user.getEmail());
+                userEmail.setVisibility(View.VISIBLE);
+            } else {
+                userEmail.setVisibility(View.GONE);
+            }
+
+            userName.setText(user.getDisplayName() != null ? user.getDisplayName() : "Usuario");
+
+            if (user.getPhotoUrl() != null) {
+                Picasso.get().load(user.getPhotoUrl()).into(userPhoto);
+            } else {
+                userPhoto.setImageResource(R.drawable.user_placeholder);
+            }
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
@@ -113,10 +132,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_settings) {
-            startActivity(new Intent(this, AjustesActivity.class));
+            startActivityForResult(new Intent(this, AjustesActivity.class), 100);
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 100) {
+            actualizarHeaderUsuario();
+        }
     }
 
     @Override

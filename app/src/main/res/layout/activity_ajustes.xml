@@ -1,15 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp">
+    android:background="#FFFFFF">
 
-  <TextView
-      android:id="@+id/ajustesTexto"
-      android:layout_width="wrap_content"
+  <LinearLayout
+      android:orientation="vertical"
+      android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:text="Aquí irán los ajustes de la app"
-      android:textSize="18sp"
-      android:textStyle="bold" />
-</LinearLayout>
+      android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ajustes"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="#0075C9"
+        android:layout_marginBottom="24dp" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_notifications"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Recibir notificaciones"
+        android:textSize="16sp"
+        android:textColor="#444" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_show_email"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Mostrar correo"
+        android:textSize="16sp"
+        android:textColor="#444"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/text_version"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Versión: 1.0"
+        android:textColor="#666"
+        android:layout_marginTop="24dp" />
+
+    <TextView
+        android:id="@+id/text_idioma"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Idioma: Español"
+        android:textColor="#666"
+        android:layout_marginTop="8dp" />
+
+  </LinearLayout>
+</ScrollView>
