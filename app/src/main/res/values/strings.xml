@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">TalaHub</string>
+    <string name="default_web_client_id">330786486648-peos6q746vo5pvp6vptq29v0vi23ukfc.apps.googleusercontent.com</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Ajustes</string>
+
+    <string name="menu_destacados">Destacados</string>
+    <string name="menu_buscar">Buscar Evento</string>
+    <string name="menu_agenda">Agenda</string>
 </resources>
