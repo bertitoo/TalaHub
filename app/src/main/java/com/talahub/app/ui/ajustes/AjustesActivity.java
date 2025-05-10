@@ -1,26 +1,24 @@
 package com.talahub.app.ui.ajustes;
 
 import android.os.Bundle;
-
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import com.talahub.app.R;
-
-import java.util.Objects;
+import com.talahub.app.databinding.ActivityAjustesBinding;
 
 public class AjustesActivity extends AppCompatActivity {
+
+    private ActivityAjustesBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_ajustes);
+        binding = ActivityAjustesBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-        Objects.requireNonNull(getSupportActionBar()).setTitle("Ajustes");
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        // Título en el ActionBar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("Ajustes");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
     }
 
     @Override
@@ -28,5 +26,4 @@ public class AjustesActivity extends AppCompatActivity {
         finish();
         return true;
     }
-
 }
