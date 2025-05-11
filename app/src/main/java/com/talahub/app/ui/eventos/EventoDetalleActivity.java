@@ -7,6 +7,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.button.MaterialButton;
 import com.squareup.picasso.Picasso;
 import com.talahub.app.R;
 
@@ -19,9 +20,11 @@ public class EventoDetalleActivity extends AppCompatActivity {
 
         ImageView imagen = findViewById(R.id.detalle_imagen);
         TextView titulo = findViewById(R.id.detalle_titulo);
-        TextView fechaLugar = findViewById(R.id.detalle_fecha_lugar);
         TextView precio = findViewById(R.id.detalle_precio);
         TextView descripcion = findViewById(R.id.detalle_descripcion);
+
+        MaterialButton btnVolver = findViewById(R.id.boton_volver);
+        btnVolver.setOnClickListener(v -> onBackPressed());
 
         // Obtener datos del intent
         String nombre = getIntent().getStringExtra("nombre");
@@ -32,7 +35,6 @@ public class EventoDetalleActivity extends AppCompatActivity {
         String descripcionTexto = getIntent().getStringExtra("descripcion");
 
         titulo.setText(nombre);
-        fechaLugar.setText(fecha + " • " + lugar);
         precio.setText(precioTexto);
         descripcion.setText(descripcionTexto);
 

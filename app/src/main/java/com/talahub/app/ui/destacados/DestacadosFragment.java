@@ -8,37 +8,36 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
 import com.squareup.picasso.Picasso;
 import com.talahub.app.R;
+import com.talahub.app.firebase.FirebaseHelper;
 import com.talahub.app.models.Evento;
 import com.talahub.app.ui.eventos.EventoDetalleActivity;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DestacadosFragment extends Fragment {
 
     private LinearLayout layoutEventos;
+    private FirebaseHelper firebaseHelper;
 
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_destacados, container, false);
         layoutEventos = root.findViewById(R.id.layout_eventos);
+        firebaseHelper = new FirebaseHelper();
 
-        mostrarEventos(obtenerEventosSimulados(), inflater);
+        // 🔁 Cargar eventos destacados desde Firestore
+        firebaseHelper.obtenerEventosDestacados(
+                eventos -> mostrarEventos(eventos, inflater),
+                error -> Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show()
+        );
 
         return root;
-    }
-
-    private List<Evento> obtenerEventosSimulados() {
-        List<Evento> lista = new ArrayList<>();
-        lista.add(new Evento("1", "Concierto Indie", "", "2025-06-01", "Auditorio", "Gratis", "https://picsum.photos/400/200?1", true));
-        lista.add(new Evento("2", "Feria de Artesanía", "", "2025-06-05", "Plaza Mayor", "Gratis", "https://picsum.photos/400/200?2", true));
-        lista.add(new Evento("3", "Teatro Clásico", "", "2025-06-10", "Centro Cultural", "5€", "https://picsum.photos/400/200?3", true));
-        lista.add(new Evento("4", "Festival de Cine", "", "2025-06-15", "Multicines", "3€", "https://picsum.photos/400/200?4", true));
-        return lista;
     }
 
     private void mostrarEventos(List<Evento> eventos, LayoutInflater inflater) {
@@ -46,8 +45,6 @@ public class DestacadosFragment extends Fragment {
 
         for (Evento evento : eventos) {
             View tarjeta = inflater.inflate(R.layout.item_evento, layoutEventos, false);
-
-            // Aplicar ancho fijo para que no se estire a toda pantalla
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             params.setMargins(0, 0, 0, 24);
@@ -62,11 +59,9 @@ public class DestacadosFragment extends Fragment {
             fechaLugar.setText(evento.getFecha() + " • " + evento.getLugar());
             precio.setText(evento.getPrecio());
 
-            if (evento.getImagenUrl() != null) {
+            if (evento.getImagenUrl() != null && !evento.getImagenUrl().isEmpty()) {
                 Picasso.get().load(evento.getImagenUrl()).into(imagen);
             }
-
-            layoutEventos.addView(tarjeta);
 
             tarjeta.setOnClickListener(v -> {
                 Intent intent = new Intent(getContext(), EventoDetalleActivity.class);
@@ -79,6 +74,7 @@ public class DestacadosFragment extends Fragment {
                 startActivity(intent);
             });
 
+            layoutEventos.addView(tarjeta);
         }
     }
 }
