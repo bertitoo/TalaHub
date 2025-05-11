@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/detalle_imagen"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:scaleType="centerCrop"
+            android:background="@color/color_azul" />
+
+        <TextView
+            android:id="@+id/detalle_titulo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Título del evento"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginTop="12dp"
+            android:textColor="@color/texto_principal" />
+
+        <TextView
+            android:id="@+id/detalle_fecha_lugar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Fecha • Lugar"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/texto_secundario" />
+
+        <TextView
+            android:id="@+id/detalle_precio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="5€"
+            android:textSize="15sp"
+            android:textColor="@color/color_naranja"
+            android:textStyle="bold"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/detalle_descripcion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Aquí irá una descripción del evento."
+            android:textSize="15sp"
+            android:layout_marginTop="16dp"
+            android:textColor="@color/texto_principal" />
+
+        <Button
+            android:id="@+id/boton_apuntarse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Apuntarme"
+            android:layout_marginTop="24dp"
+            android:backgroundTint="@color/color_naranja"
+            android:textColor="@color/color_blanco" />
+    </LinearLayout>
+</ScrollView>

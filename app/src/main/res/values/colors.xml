@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="color_azul">#0075C9</color>
+    <color name="color_naranja">#F57C00</color>
+    <color name="color_blanco">#FFFFFF</color>
+    <color name="texto_principal">#212121</color>
+    <color name="texto_secundario">#757575</color>
+</resources>
