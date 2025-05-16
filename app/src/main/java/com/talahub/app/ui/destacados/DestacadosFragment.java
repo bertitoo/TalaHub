@@ -67,6 +67,7 @@ public class DestacadosFragment extends Fragment {
                 Intent intent = new Intent(getContext(), EventoDetalleActivity.class);
                 intent.putExtra("nombre", evento.getNombre());
                 intent.putExtra("fecha", evento.getFecha());
+                intent.putExtra("hora", evento.getHora());
                 intent.putExtra("lugar", evento.getLugar());
                 intent.putExtra("precio", evento.getPrecio());
                 intent.putExtra("imagen", evento.getImagenUrl());

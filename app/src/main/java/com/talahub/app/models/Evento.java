@@ -5,6 +5,7 @@ public class Evento {
     private String nombre;
     private String descripcion;
     private String fecha;
+    private String hora;
     private String lugar;
     private String precio;
     private String imagenUrl;
@@ -13,11 +14,12 @@ public class Evento {
     public Evento() {}
 
     public Evento(String id, String nombre, String descripcion, String fecha,
-                  String lugar, String precio, String imagenUrl, boolean destacado) {
+                  String hora, String lugar, String precio, String imagenUrl, boolean destacado) {
         this.id = id;
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.fecha = fecha;
+        this.hora = hora;
         this.lugar = lugar;
         this.precio = precio;
         this.imagenUrl = imagenUrl;
@@ -36,6 +38,9 @@ public class Evento {
 
     public String getFecha() { return fecha; }
     public void setFecha(String fecha) { this.fecha = fecha; }
+
+    public String getHora() { return hora; }
+    public void setHora(String hora) { this.hora = hora; }
 
     public String getLugar() { return lugar; }
     public void setLugar(String lugar) { this.lugar = lugar; }
