@@ -86,4 +86,22 @@ public class FirebaseHelper {
                 .addOnFailureListener(onFailure);
     }
 
+    public void estaApuntadoAEvento(String uid, String eventoId, Consumer<Boolean> callback) {
+        db.collection("agendas")
+                .document(uid)
+                .collection("eventos")
+                .document(eventoId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        callback.accept(documentSnapshot.exists());
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        callback.accept(false); // Si falla, asumimos que NO está apuntado
+                    }
+                });
+    }
+
 }

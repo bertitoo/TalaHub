@@ -46,6 +46,8 @@ public class DestacadosFragment extends Fragment {
     private void mostrarEventos(List<Evento> eventos, LayoutInflater inflater) {
         layoutEventos.removeAllViews();
 
+        String uid = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
+
         for (Evento evento : eventos) {
             View tarjeta = inflater.inflate(R.layout.item_evento, layoutEventos, false);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
@@ -57,14 +59,25 @@ public class DestacadosFragment extends Fragment {
             TextView nombre = tarjeta.findViewById(R.id.tvNombreEvento);
             TextView fechaLugar = tarjeta.findViewById(R.id.tvFechaLugar);
             TextView precio = tarjeta.findViewById(R.id.tvPrecio);
+            TextView tvApuntado = tarjeta.findViewById(R.id.tvApuntado);
 
             nombre.setText(evento.getNombre());
             fechaLugar.setText(evento.getFecha() + " • " + evento.getLugar());
             precio.setText(evento.getPrecio());
 
             if (evento.getImagenUrl() != null && !evento.getImagenUrl().isEmpty()) {
-                Picasso.get().load(evento.getImagenUrl()).into(imagen);
+                com.squareup.picasso.Picasso.get().load(evento.getImagenUrl()).into(imagen);
             }
+
+            // Por defecto oculto
+            tvApuntado.setVisibility(View.GONE);
+
+            // Comprueba si el usuario está apuntado a este evento
+            firebaseHelper.estaApuntadoAEvento(uid, evento.getId(), apuntado -> {
+                if (apuntado) {
+                    tvApuntado.setVisibility(View.VISIBLE);
+                }
+            });
 
             tarjeta.setOnClickListener(v -> {
                 Intent intent = new Intent(getContext(), EventoDetalleActivity.class);

@@ -38,6 +38,18 @@
                 android:textSize="17sp"
                 android:textStyle="bold" />
 
+            <!-- Justo después del título -->
+            <TextView
+                android:id="@+id/tvApuntado"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Apuntado  ✔️"
+                android:textColor="@color/color_azul"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                android:layout_marginTop="4dp"/>
+
             <!-- Fecha + lugar -->
             <TextView
                 android:id="@+id/tvFechaLugar"
