@@ -1,19 +1,19 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="horizontal"
-    android:padding="16dp"
+    android:padding="20dp"
     android:background="@drawable/bg_agenda_item"
-    android:layout_marginBottom="16dp"
+    android:layout_marginBottom="20dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:elevation="4dp"
     android:gravity="center_vertical">
 
     <View
-        android:layout_width="8dp"
-        android:layout_height="64dp"
+        android:layout_width="10dp"
+        android:layout_height="80dp"
         android:background="@drawable/agenda_dot_gradient"
-        android:layout_marginEnd="16dp" />
+        android:layout_marginEnd="20dp" />
 
     <LinearLayout
         android:orientation="vertical"
@@ -24,14 +24,14 @@
         <TextView
             android:id="@+id/tvAgendaNombreEvento"
             android:textStyle="bold"
-            android:textSize="18sp"
+            android:textSize="20sp"
             android:textColor="@color/texto_principal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
         <TextView
             android:id="@+id/tvAgendaFechaHora"
-            android:textSize="14sp"
+            android:textSize="15sp"
             android:textColor="@color/color_naranja"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -39,20 +39,28 @@
 
         <TextView
             android:id="@+id/tvAgendaLugar"
-            android:textSize="14sp"
+            android:textSize="15sp"
             android:textColor="@color/texto_secundario"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp" />
 
+        <TextView
+            android:id="@+id/tvAgendaPrecio"
+            android:textSize="15sp"
+            android:textColor="@color/color_naranja"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Precio: Gratis" />
     </LinearLayout>
 
     <ImageView
         android:id="@+id/ivAgendaImagenEvento"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
         android:scaleType="centerCrop"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="20dp"
         android:background="@drawable/rounded_corner_bg" />
 
     <LinearLayout
@@ -62,9 +70,19 @@
         android:layout_height="match_parent">
 
         <ImageButton
+            android:id="@+id/btnCompartirEvento"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_share"
+            android:contentDescription="Compartir evento"
+            android:padding="8dp"
+            app:tint="@color/color_azul" />
+
+        <ImageButton
             android:id="@+id/btnEliminarEvento"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_delete"
             android:contentDescription="Eliminar evento"

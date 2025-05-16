@@ -118,17 +118,30 @@ public class AgendaFragment extends Fragment {
             return fechaA.compareTo(fechaB);
         });
 
-        String ultimaFecha = "";
+        String ultimoMes = "";
+        SimpleDateFormat formatoEntrada = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+        SimpleDateFormat formatoMes = new SimpleDateFormat("MMMM yyyy", new Locale("es", "ES"));
+
         for (Evento evento : eventos) {
-            // Encabezado de fecha si cambia
-            if (!evento.getFecha().equals(ultimaFecha)) {
-                ultimaFecha = evento.getFecha();
-                TextView fechaHeader = new TextView(getContext());
-                fechaHeader.setText(formatearFechaHeader(evento.getFecha()));
-                fechaHeader.setTextSize(16f);
-                fechaHeader.setTextColor(getResources().getColor(R.color.color_naranja));
-                fechaHeader.setPadding(0, 24, 0, 8);
-                layoutEventosAgenda.addView(fechaHeader);
+            String mesActual = "";
+            try {
+                Date fechaEvento = formatoEntrada.parse(evento.getFecha());
+                mesActual = formatoMes.format(fechaEvento);
+                // Capitalizar la primera letra
+                mesActual = mesActual.substring(0, 1).toUpperCase() + mesActual.substring(1);
+            } catch (Exception e) {
+                // fallback si la fecha no es válida
+                mesActual = evento.getFecha().substring(3, 10);
+            }
+
+            if (!mesActual.equals(ultimoMes)) {
+                ultimoMes = mesActual;
+                TextView mesHeader = new TextView(getContext());
+                mesHeader.setText(mesActual); // Mostrará "Junio 2025"
+                mesHeader.setTextSize(18f);
+                mesHeader.setTextColor(getResources().getColor(R.color.color_naranja));
+                mesHeader.setPadding(0, 24, 0, 8);
+                layoutEventosAgenda.addView(mesHeader);
             }
 
             View item = inflater.inflate(R.layout.item_evento_agenda, layoutEventosAgenda, false);
@@ -136,19 +149,28 @@ public class AgendaFragment extends Fragment {
             TextView nombre = item.findViewById(R.id.tvAgendaNombreEvento);
             TextView fechaHora = item.findViewById(R.id.tvAgendaFechaHora);
             TextView lugar = item.findViewById(R.id.tvAgendaLugar);
+            TextView precio = item.findViewById(R.id.tvAgendaPrecio);
             ImageView imagen = item.findViewById(R.id.ivAgendaImagenEvento);
             ImageButton btnEliminar = item.findViewById(R.id.btnEliminarEvento);
+            ImageButton btnCompartir = item.findViewById(R.id.btnCompartirEvento);
 
             nombre.setText(evento.getNombre());
             fechaHora.setText(evento.getFecha() + " - " + evento.getHora());
             lugar.setText(evento.getLugar());
+
+            String precioEvento = evento.getPrecio();
+            if (precioEvento == null || precioEvento.trim().isEmpty() || precioEvento.trim().equalsIgnoreCase("gratis")) {
+                precio.setText("Precio: Gratis");
+            } else {
+                precio.setText("Precio: " + precioEvento);
+            }
+
             if (evento.getImagenUrl() != null && !evento.getImagenUrl().isEmpty()) {
                 Picasso.get().load(evento.getImagenUrl()).into(imagen);
             } else {
                 imagen.setImageResource(R.drawable.user_placeholder);
             }
 
-            // Distinción visual si el evento es pasado
             if (esEventoPasado(evento.getFecha(), evento.getHora())) {
                 item.setAlpha(0.5f);
                 nombre.setTextColor(getResources().getColor(R.color.texto_secundario));
@@ -157,7 +179,6 @@ public class AgendaFragment extends Fragment {
                 nombre.setTextColor(getResources().getColor(R.color.texto_principal));
             }
 
-            // Eliminar evento con animación fade out
             btnEliminar.setOnClickListener(v -> {
                 new android.app.AlertDialog.Builder(getContext())
                         .setTitle("Eliminar evento")
@@ -167,6 +188,14 @@ public class AgendaFragment extends Fragment {
                         })
                         .setNegativeButton("Cancelar", null)
                         .show();
+            });
+
+            btnCompartir.setOnClickListener(v -> {
+                String mensaje = generarMensajeDeEvento(evento);
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("text/plain");
+                shareIntent.putExtra(Intent.EXTRA_TEXT, mensaje);
+                startActivity(Intent.createChooser(shareIntent, "Compartir evento con..."));
             });
 
             layoutEventosAgenda.addView(item);
@@ -229,5 +258,14 @@ public class AgendaFragment extends Fragment {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private String generarMensajeDeEvento(Evento evento) {
+        return "¡Mira este evento!\n\n" +
+                "📅 " + evento.getNombre() + "\n" +
+                "🗓 Fecha: " + evento.getFecha() + " " + evento.getHora() + "\n" +
+                "📍 Lugar: " + evento.getLugar() + "\n" +
+                "💸 Precio: " + evento.getPrecio() + "\n\n" +
+                "¿Te apuntas?";
     }
 }
