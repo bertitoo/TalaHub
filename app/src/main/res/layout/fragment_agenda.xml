@@ -4,9 +4,28 @@
     android:background="#f5f7fb">
 
     <LinearLayout
-        android:id="@+id/layout_eventos_agenda"
         android:orientation="vertical"
-        android:padding="24dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:padding="24dp">
+
+        <EditText
+            android:id="@+id/etBuscarAgenda"
+            android:hint="Buscar en tu agenda..."
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableStart="@android:drawable/ic_menu_search"
+            android:drawablePadding="12dp"
+            android:padding="10dp"
+            android:background="@drawable/bg_agenda_item"
+            android:layout_marginBottom="16dp"
+            android:textColor="@color/texto_principal"
+            android:textColorHint="@color/texto_secundario"/>
+
+        <LinearLayout
+            android:id="@+id/layout_eventos_agenda"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
 </ScrollView>
