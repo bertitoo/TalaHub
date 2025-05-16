@@ -13,6 +13,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
+import androidx.navigation.NavOptions;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
@@ -143,6 +144,11 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 100) {
             actualizarHeaderUsuario();
+        } else if (requestCode == 200 && resultCode == RESULT_OK) {
+            if (data != null && data.getBooleanExtra("abrirAgenda", false)) {
+                NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+                navController.navigate(R.id.nav_agenda);
+            }
         }
     }
 
@@ -151,5 +157,24 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
                 || super.onSupportNavigateUp();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(new Intent(this, MainActivity.class));
+
+        if (intent != null && intent.getBooleanExtra("abrirAgenda", false)) {
+            intent.removeExtra("abrirAgenda"); // evitar múltiples ejecuciones
+            binding.drawerLayout.post(() -> {
+                NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+                NavOptions navOptions = new NavOptions.Builder()
+                        .setPopUpTo(R.id.mobile_navigation, true)
+                        .build();
+
+                navController.navigate(R.id.nav_agenda, null, navOptions);
+
+            });
+        }
     }
 }

@@ -11,6 +11,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 import com.squareup.picasso.Picasso;
 import com.talahub.app.R;
@@ -28,6 +30,7 @@ public class DestacadosFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_destacados, container, false);
+        setHasOptionsMenu(true);
         layoutEventos = root.findViewById(R.id.layout_eventos);
         firebaseHelper = new FirebaseHelper();
 
@@ -65,6 +68,7 @@ public class DestacadosFragment extends Fragment {
 
             tarjeta.setOnClickListener(v -> {
                 Intent intent = new Intent(getContext(), EventoDetalleActivity.class);
+                intent.putExtra("id", evento.getId());
                 intent.putExtra("nombre", evento.getNombre());
                 intent.putExtra("fecha", evento.getFecha());
                 intent.putExtra("hora", evento.getHora());
@@ -72,10 +76,24 @@ public class DestacadosFragment extends Fragment {
                 intent.putExtra("precio", evento.getPrecio());
                 intent.putExtra("imagen", evento.getImagenUrl());
                 intent.putExtra("descripcion", evento.getDescripcion());
-                startActivity(intent);
+                startActivityForResult(intent, 200);
             });
 
             layoutEventos.addView(tarjeta);
         }
     }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 200 && resultCode == getActivity().RESULT_OK) {
+            if (data != null && data.getBooleanExtra("abrirAgenda", false)) {
+                NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_content_main);
+                navController.navigate(R.id.nav_agenda);
+            }
+        }
+    }
+
+
 }

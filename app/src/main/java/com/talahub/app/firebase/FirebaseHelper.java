@@ -3,6 +3,8 @@ package com.talahub.app.firebase;
 import android.os.Build;
 import android.util.Log;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.talahub.app.models.Evento;
@@ -72,4 +74,16 @@ public class FirebaseHelper {
                     }
                 });
     }
+
+    public void apuntarseAEvento(Evento evento, String uid, OnSuccessListener<Void> onSuccess, OnFailureListener onFailure) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("agendas")
+                .document(uid)
+                .collection("eventos")
+                .document(evento.getId())
+                .set(evento)
+                .addOnSuccessListener(onSuccess)
+                .addOnFailureListener(onFailure);
+    }
+
 }
