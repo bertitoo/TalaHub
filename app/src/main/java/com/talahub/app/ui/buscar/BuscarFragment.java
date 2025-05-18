@@ -1,5 +1,6 @@
 package com.talahub.app.ui.buscar;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -12,12 +13,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.squareup.picasso.Picasso;
 import com.talahub.app.R;
 import com.talahub.app.firebase.FirebaseHelper;
 import com.talahub.app.models.Evento;
+import com.talahub.app.ui.eventos.EventoDetalleActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,6 +108,22 @@ public class BuscarFragment extends Fragment {
             } else {
                 imagen.setImageResource(R.drawable.user_placeholder);
             }
+
+            item.setClickable(true);
+            item.setForeground(ContextCompat.getDrawable(requireContext(), R.drawable.ripple_effect));
+
+            item.setOnClickListener(v -> {
+                Intent intent = new Intent(requireContext(), EventoDetalleActivity.class);
+                intent.putExtra("id", evento.getId());
+                intent.putExtra("nombre", evento.getNombre());
+                intent.putExtra("descripcion", evento.getDescripcion());
+                intent.putExtra("fecha", evento.getFecha());
+                intent.putExtra("hora", evento.getHora());
+                intent.putExtra("lugar", evento.getLugar());
+                intent.putExtra("precio", evento.getPrecio());
+                intent.putExtra("imagen", evento.getImagenUrl());
+                startActivity(intent);
+            });
 
             layoutResultados.addView(item);
         }

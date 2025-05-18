@@ -13,19 +13,24 @@
             android:id="@+id/etBuscarEvento"
             android:hint="Buscar eventos por nombre, lugar, descripción..."
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_search_rounded"
             android:drawableStart="@android:drawable/ic_menu_search"
-            android:drawablePadding="10dp"
-            android:background="@drawable/bg_agenda_item"
-            android:padding="12dp"
-            android:layout_marginBottom="14dp"
+            android:drawablePadding="12dp"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp"
             android:textColor="@color/texto_principal"
-            android:textColorHint="@color/texto_secundario"/>
+            android:textColorHint="@color/texto_secundario"
+            android:elevation="2dp"
+            android:textSize="16sp"/>
 
         <LinearLayout
             android:id="@+id/layout_resultados_busqueda"
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"/>
     </LinearLayout>
 </ScrollView>
