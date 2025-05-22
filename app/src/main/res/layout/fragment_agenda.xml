@@ -22,12 +22,30 @@
             android:textColor="@color/texto_principal"
             android:textColorHint="@color/texto_secundario"/>
 
-        <Button
-            android:id="@+id/btnExportarPdf"
+        <LinearLayout
+            android:id="@+id/layoutExportarPdf"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Exportar agenda a PDF"
-            android:layout_marginTop="16dp" />
+            android:layout_marginBottom="16dp"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/btnExportarPdf"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Exportar agenda a PDF"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:paddingLeft="24dp"
+                android:paddingRight="24dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:background="@drawable/bg_boton_pdf"
+                android:drawableLeft="@drawable/ic_file"
+                android:drawablePadding="8dp"
+                android:gravity="center"/>
+        </LinearLayout>
+
 
         <LinearLayout
             android:id="@+id/layout_eventos_agenda"

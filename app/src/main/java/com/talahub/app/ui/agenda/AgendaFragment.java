@@ -1,6 +1,8 @@
 package com.talahub.app.ui.agenda;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.pdf.PdfDocument;
@@ -49,7 +51,7 @@ public class AgendaFragment extends Fragment {
         EditText etBuscar = root.findViewById(R.id.etBuscarAgenda);
         layoutEventosAgenda = root.findViewById(R.id.layout_eventos_agenda);
 
-        Button btnExportarPdf = root.findViewById(R.id.btnExportarPdf);
+        TextView btnExportarPdf = root.findViewById(R.id.btnExportarPdf);
         btnExportarPdf.setOnClickListener(v -> exportarAgendaComoPdf());
 
         cargarEventosAgenda(inflater);
@@ -184,6 +186,12 @@ public class AgendaFragment extends Fragment {
         PdfDocument.Page page = pdfDocument.startPage(pageInfo);
         Canvas canvas = page.getCanvas();
 
+        Bitmap logoBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.app_logo);
+        Bitmap logoEscalado = Bitmap.createScaledBitmap(logoBitmap, 120, 120, false);
+        int centerX = (pageWidth - logoEscalado.getWidth()) / 2;
+        canvas.drawBitmap(logoEscalado, centerX, y, paint);
+        y += logoEscalado.getHeight() + 40;
+
         canvas.drawText("Agenda de Eventos - TalaHub", 40, y, titlePaint); y += 25;
         canvas.drawText("Usuario: " + nombreUsuario, 40, y, paint); y += 25;
         canvas.drawText("Fecha de exportación: " + fechaActual, 40, y, paint); y += 40;
@@ -206,7 +214,8 @@ public class AgendaFragment extends Fragment {
 
         pdfDocument.finishPage(page);
 
-        File pdfFile = new File(getContext().getExternalFilesDir(null), "Agenda_TalaHub.pdf");
+        String fechaNombre = new SimpleDateFormat("yyyyMMdd", Locale.getDefault()).format(new Date());
+        File pdfFile = new File(getContext().getExternalFilesDir(null), "Agenda_TalaHub_" + fechaNombre + ".pdf");
 
         try {
             pdfDocument.writeTo(new FileOutputStream(pdfFile));
