@@ -5,4 +5,6 @@
     <color name="color_blanco">#FFFFFF</color>
     <color name="texto_principal">#212121</color>
     <color name="texto_secundario">#757575</color>
+    <color name="color_verde">#4CAF50</color>
+
 </resources>

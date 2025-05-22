@@ -158,6 +158,8 @@ public class BuscarFragment extends Fragment {
 
         for (Evento evento : eventos) {
             View item = inflater.inflate(R.layout.item_evento_busqueda, layoutResultados, false);
+            TextView tvApuntado = item.findViewById(R.id.tvApuntadoBusqueda);
+            tvApuntado.setVisibility(View.GONE);
 
             TextView nombre      = item.findViewById(R.id.tvNombreEventoBusqueda);
             TextView fechaHora   = item.findViewById(R.id.tvFechaHoraBusqueda);
@@ -188,6 +190,14 @@ public class BuscarFragment extends Fragment {
             item.setForeground(ContextCompat.getDrawable(requireContext(),
                     R.drawable.ripple_effect));
             item.setOnClickListener(v -> abrirDetalle(evento));
+
+            String uid = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
+            new FirebaseHelper().estaApuntadoAEvento(uid, evento.getId(), apuntado -> {
+                if (apuntado) {
+                    tvApuntado.setVisibility(View.VISIBLE);
+                }
+            });
+
             layoutResultados.addView(item);
         }
     }

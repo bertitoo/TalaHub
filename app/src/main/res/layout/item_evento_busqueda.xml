@@ -61,14 +61,31 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"/>
 
-                <TextView
-                    android:id="@+id/tvPrecioBusqueda"
-                    android:textSize="14sp"
-                    android:textColor="@color/color_azul"
-                    android:textStyle="bold"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"/>
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp">
+
+                    <TextView
+                        android:id="@+id/tvPrecioBusqueda"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:textColor="@color/color_azul"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvApuntadoBusqueda"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="  •  Apuntado"
+                        android:textColor="@color/color_verde"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"/>
+                </LinearLayout>
+
             </LinearLayout>
 
         </LinearLayout>
