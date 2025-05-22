@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -51,6 +52,21 @@ public class AjustesActivity extends AppCompatActivity {
             prefs.edit().putBoolean(KEY_SHOW_EMAIL, isChecked).apply();
             Toast.makeText(this, "Mostrar correo: " + (isChecked ? "Sí" : "No"), Toast.LENGTH_SHORT).show();
         });
+
+        SharedPreferences themePrefs = getSharedPreferences("talahub_settings", MODE_PRIVATE);
+        boolean darkMode = themePrefs.getBoolean("dark_mode", false);
+        binding.switchDarkMode.setChecked(darkMode);
+        AppCompatDelegate.setDefaultNightMode(darkMode
+                ? AppCompatDelegate.MODE_NIGHT_YES
+                : AppCompatDelegate.MODE_NIGHT_NO);
+
+        binding.switchDarkMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            prefs.edit().putBoolean("dark_mode", isChecked).apply();
+            AppCompatDelegate.setDefaultNightMode(isChecked
+                    ? AppCompatDelegate.MODE_NIGHT_YES
+                    : AppCompatDelegate.MODE_NIGHT_NO);
+        });
+
 
         // Versión
         binding.textVersion.setText("Versión: 1.0");

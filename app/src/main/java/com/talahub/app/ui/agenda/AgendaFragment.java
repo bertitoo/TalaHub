@@ -1,12 +1,15 @@
 package com.talahub.app.ui.agenda;
 
 import android.content.Intent;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.pdf.PdfDocument;
+import android.net.Uri;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -14,7 +17,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
+import androidx.appcompat.app.AlertDialog;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -22,6 +27,9 @@ import com.squareup.picasso.Picasso;
 import com.talahub.app.R;
 import com.talahub.app.models.Evento;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,32 +44,37 @@ public class AgendaFragment extends Fragment {
     private List<Evento> eventosFiltrados = new ArrayList<>();
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_agenda, container, false);
         EditText etBuscar = root.findViewById(R.id.etBuscarAgenda);
         layoutEventosAgenda = root.findViewById(R.id.layout_eventos_agenda);
 
+        Button btnExportarPdf = root.findViewById(R.id.btnExportarPdf);
+        btnExportarPdf.setOnClickListener(v -> exportarAgendaComoPdf());
+
         cargarEventosAgenda(inflater);
 
-        etBuscar.addTextChangedListener(new TextWatcher() {
+        etBuscar.addTextChangedListener(new android.text.TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 filtrarEventosAgenda(s.toString().trim(), inflater);
             }
+
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(android.text.Editable s) {
+            }
         });
 
         return root;
     }
 
     private void cargarEventosAgenda(LayoutInflater inflater) {
-        String uid = FirebaseAuth.getInstance().getCurrentUser() != null
-                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
-                : null;
+        String uid = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
 
         if (uid == null) {
             Toast.makeText(getContext(), "Debes iniciar sesión para ver tu agenda", Toast.LENGTH_SHORT).show();
@@ -81,9 +94,8 @@ public class AgendaFragment extends Fragment {
                     }
                     filtrarEventosAgenda("", inflater);
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Error al cargar tu agenda", Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Error al cargar tu agenda", Toast.LENGTH_SHORT).show());
     }
 
     private void filtrarEventosAgenda(String query, LayoutInflater inflater) {
@@ -110,40 +122,9 @@ public class AgendaFragment extends Fragment {
             return;
         }
 
-        // Ordenar eventos por fecha ascendente
-        Collections.sort(eventos, (a, b) -> {
-            Date fechaA = getDateFromEvento(a.getFecha(), a.getHora());
-            Date fechaB = getDateFromEvento(b.getFecha(), b.getHora());
-            if (fechaA == null || fechaB == null) return 0;
-            return fechaA.compareTo(fechaB);
-        });
-
-        String ultimoMes = "";
-        SimpleDateFormat formatoEntrada = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
-        SimpleDateFormat formatoMes = new SimpleDateFormat("MMMM yyyy", new Locale("es", "ES"));
+        Collections.sort(eventos, (a, b) -> getDateFromEvento(a.getFecha(), a.getHora()).compareTo(getDateFromEvento(b.getFecha(), b.getHora())));
 
         for (Evento evento : eventos) {
-            String mesActual = "";
-            try {
-                Date fechaEvento = formatoEntrada.parse(evento.getFecha());
-                mesActual = formatoMes.format(fechaEvento);
-                // Capitalizar la primera letra
-                mesActual = mesActual.substring(0, 1).toUpperCase() + mesActual.substring(1);
-            } catch (Exception e) {
-                // fallback si la fecha no es válida
-                mesActual = evento.getFecha().substring(3, 10);
-            }
-
-            if (!mesActual.equals(ultimoMes)) {
-                ultimoMes = mesActual;
-                TextView mesHeader = new TextView(getContext());
-                mesHeader.setText(mesActual); // Mostrará "Junio 2025"
-                mesHeader.setTextSize(18f);
-                mesHeader.setTextColor(getResources().getColor(R.color.color_naranja));
-                mesHeader.setPadding(0, 24, 0, 8);
-                layoutEventosAgenda.addView(mesHeader);
-            }
-
             View item = inflater.inflate(R.layout.item_evento_agenda, layoutEventosAgenda, false);
 
             TextView nombre = item.findViewById(R.id.tvAgendaNombreEvento);
@@ -157,13 +138,7 @@ public class AgendaFragment extends Fragment {
             nombre.setText(evento.getNombre());
             fechaHora.setText(evento.getFecha() + " - " + evento.getHora());
             lugar.setText(evento.getLugar());
-
-            String precioEvento = evento.getPrecio();
-            if (precioEvento == null || precioEvento.trim().isEmpty() || precioEvento.trim().equalsIgnoreCase("gratis")) {
-                precio.setText("Precio: Gratis");
-            } else {
-                precio.setText("Precio: " + precioEvento);
-            }
+            precio.setText("Precio: " + (evento.getPrecio() == null || evento.getPrecio().isEmpty() ? "Gratis" : evento.getPrecio()));
 
             if (evento.getImagenUrl() != null && !evento.getImagenUrl().isEmpty()) {
                 Picasso.get().load(evento.getImagenUrl()).into(imagen);
@@ -171,40 +146,105 @@ public class AgendaFragment extends Fragment {
                 imagen.setImageResource(R.drawable.user_placeholder);
             }
 
-            if (esEventoPasado(evento.getFecha(), evento.getHora())) {
-                item.setAlpha(0.5f);
-                nombre.setTextColor(getResources().getColor(R.color.texto_secundario));
-            } else {
-                item.setAlpha(1.0f);
-                nombre.setTextColor(getResources().getColor(R.color.texto_principal));
-            }
-
-            btnEliminar.setOnClickListener(v -> {
-                new android.app.AlertDialog.Builder(getContext())
-                        .setTitle("Eliminar evento")
-                        .setMessage("¿Seguro que quieres eliminar este evento de tu agenda?")
-                        .setPositiveButton("Eliminar", (dialog, which) -> {
-                            eliminarEventoDeAgenda(evento.getId(), item, inflater);
-                        })
-                        .setNegativeButton("Cancelar", null)
-                        .show();
-            });
-
-            btnCompartir.setOnClickListener(v -> {
-                String mensaje = generarMensajeDeEvento(evento);
-                Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                shareIntent.setType("text/plain");
-                shareIntent.putExtra(Intent.EXTRA_TEXT, mensaje);
-                startActivity(Intent.createChooser(shareIntent, "Compartir evento con..."));
-            });
+            btnEliminar.setOnClickListener(v -> eliminarEventoDeAgenda(evento.getId(), item, inflater));
+            btnCompartir.setOnClickListener(v -> compartirEvento(evento));
 
             layoutEventosAgenda.addView(item);
         }
     }
 
+    private void exportarAgendaComoPdf() {
+        if (eventosOriginales.isEmpty()) {
+            Toast.makeText(getContext(), "No hay eventos para exportar", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Obtener nombre del usuario y fecha actual
+        String nombreUsuario = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getDisplayName()
+                : "Usuario";
+        if (nombreUsuario == null || nombreUsuario.isEmpty()) {
+            nombreUsuario = "Usuario";
+        }
+
+        String fechaActual = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
+
+        PdfDocument pdfDocument = new PdfDocument();
+        Paint paint = new Paint();
+        Paint titlePaint = new Paint();
+        titlePaint.setTextSize(16);
+        titlePaint.setFakeBoldText(true);
+
+        int pageNumber = 1;
+        int y = 50;
+        int pageHeight = 1120;
+        int pageWidth = 792;
+
+        PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create();
+        PdfDocument.Page page = pdfDocument.startPage(pageInfo);
+        Canvas canvas = page.getCanvas();
+
+        canvas.drawText("Agenda de Eventos - TalaHub", 40, y, titlePaint); y += 25;
+        canvas.drawText("Usuario: " + nombreUsuario, 40, y, paint); y += 25;
+        canvas.drawText("Fecha de exportación: " + fechaActual, 40, y, paint); y += 40;
+
+        for (Evento e : eventosOriginales) {
+            if (y > pageHeight - 100) {
+                pdfDocument.finishPage(page);
+                pageNumber++;
+                pageInfo = new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create();
+                page = pdfDocument.startPage(pageInfo);
+                canvas = page.getCanvas();
+                y = 50;
+            }
+
+            canvas.drawText("Evento: " + e.getNombre(), 40, y, paint); y += 25;
+            canvas.drawText("Fecha: " + e.getFecha() + " " + e.getHora(), 40, y, paint); y += 25;
+            canvas.drawText("Lugar: " + e.getLugar(), 40, y, paint); y += 25;
+            canvas.drawText("Precio: " + (e.getPrecio() == null || e.getPrecio().isEmpty() ? "Gratis" : e.getPrecio()), 40, y, paint); y += 40;
+        }
+
+        pdfDocument.finishPage(page);
+
+        File pdfFile = new File(getContext().getExternalFilesDir(null), "Agenda_TalaHub.pdf");
+
+        try {
+            pdfDocument.writeTo(new FileOutputStream(pdfFile));
+            Toast.makeText(getContext(), "PDF generado." , Toast.LENGTH_LONG).show();
+
+            Uri uri = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".provider", pdfFile);
+
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Exportación completada")
+                    .setMessage("¿Qué deseas hacer con el PDF?")
+                    .setPositiveButton("Abrir PDF", (dialog, which) -> {
+                        Intent abrirIntent = new Intent(Intent.ACTION_VIEW);
+                        abrirIntent.setDataAndType(uri, "application/pdf");
+                        abrirIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        try {
+                            startActivity(abrirIntent);
+                        } catch (Exception e) {
+                            Toast.makeText(getContext(), "No hay visor de PDF disponible", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .setNegativeButton("Compartir", (dialog, which) -> {
+                        Intent compartirIntent = new Intent(Intent.ACTION_SEND);
+                        compartirIntent.setType("application/pdf");
+                        compartirIntent.putExtra(Intent.EXTRA_STREAM, uri);
+                        compartirIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        startActivity(Intent.createChooser(compartirIntent, "Compartir PDF con..."));
+                    })
+                    .setNeutralButton("Cancelar", null)
+                    .show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(getContext(), "Error al generar PDF", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void eliminarEventoDeAgenda(String eventoId, View itemView, LayoutInflater inflater) {
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
         FirebaseFirestore.getInstance()
                 .collection("agendas")
                 .document(uid)
@@ -212,43 +252,32 @@ public class AgendaFragment extends Fragment {
                 .document(eventoId)
                 .delete()
                 .addOnSuccessListener(aVoid -> {
-                    // Animación fade out antes de quitar la vista y refrescar la lista
                     itemView.animate()
                             .alpha(0f)
                             .setDuration(350)
                             .withEndAction(() -> {
                                 layoutEventosAgenda.removeView(itemView);
-                                // Refresca lista por si hay encabezados vacíos
                                 cargarEventosAgenda(inflater);
                             })
                             .start();
                     Toast.makeText(getContext(), "Evento eliminado de tu agenda", Toast.LENGTH_SHORT).show();
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Error al eliminar el evento", Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Error al eliminar el evento", Toast.LENGTH_SHORT).show());
     }
 
-    private boolean esEventoPasado(String fecha, String hora) {
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-            Date eventDate = sdf.parse(fecha + " " + hora);
-            return eventDate.before(new Date());
-        } catch (Exception e) {
-            return false;
-        }
-    }
+    private void compartirEvento(Evento evento) {
+        String mensaje = "¡Mira este evento!\n\n" +
+                "" + evento.getNombre() + "\n" +
+                "Fecha: " + evento.getFecha() + " " + evento.getHora() + "\n" +
+                "Lugar: " + evento.getLugar() + "\n" +
+                "Precio: " + evento.getPrecio() + "\n\n" +
+                "¿Te apuntas?";
 
-    private String formatearFechaHeader(String fechaOriginal) {
-        try {
-            SimpleDateFormat formatoEntrada = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-            Date fecha = formatoEntrada.parse(fechaOriginal);
-            SimpleDateFormat formatoSalida = new SimpleDateFormat("EEEE, d MMMM yyyy", new Locale("es", "ES"));
-            String salida = formatoSalida.format(fecha);
-            return salida.substring(0, 1).toUpperCase() + salida.substring(1); // Primera mayúscula
-        } catch (Exception e) {
-            return fechaOriginal;
-        }
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, mensaje);
+        startActivity(Intent.createChooser(shareIntent, "Compartir evento con..."));
     }
 
     private Date getDateFromEvento(String fecha, String hora) {
@@ -256,16 +285,7 @@ public class AgendaFragment extends Fragment {
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
             return sdf.parse(fecha + " " + hora);
         } catch (Exception e) {
-            return null;
+            return new Date();
         }
-    }
-
-    private String generarMensajeDeEvento(Evento evento) {
-        return "¡Mira este evento!\n\n" +
-                "📅 " + evento.getNombre() + "\n" +
-                "🗓 Fecha: " + evento.getFecha() + " " + evento.getHora() + "\n" +
-                "📍 Lugar: " + evento.getLugar() + "\n" +
-                "💸 Precio: " + evento.getPrecio() + "\n\n" +
-                "¿Te apuntas?";
     }
 }
