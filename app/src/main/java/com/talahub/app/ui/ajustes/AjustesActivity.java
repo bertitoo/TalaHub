@@ -61,28 +61,32 @@ public class AjustesActivity extends AppCompatActivity {
 
     private void solicitarPermisoNotificaciones() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Verifica si el permiso ya está concedido
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-
+                    == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Permiso ya concedido, notificaciones activadas.", Toast.LENGTH_SHORT).show();
+            } else {
+                // Solicita el permiso
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.POST_NOTIFICATIONS},
                         REQUEST_NOTIFICATION_PERMISSION);
-            } else {
-                Toast.makeText(this, "Permiso ya concedido", Toast.LENGTH_SHORT).show();
             }
         } else {
-            Toast.makeText(this, "No es necesario pedir permiso en esta versión", Toast.LENGTH_SHORT).show();
+            // En versiones anteriores no se requiere el permiso
+            Toast.makeText(this, "Permiso no necesario en esta versión de Android", Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
         if (requestCode == REQUEST_NOTIFICATION_PERMISSION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "Permiso concedido", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, "Permiso denegado", Toast.LENGTH_SHORT).show();
+                // Revertir el switch si el permiso fue denegado
                 binding.switchNotifications.setChecked(false);
             }
         }
