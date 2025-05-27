@@ -1,12 +1,20 @@
 package com.talahub.app.ui.eventos;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
@@ -105,6 +113,7 @@ public class EventoDetalleActivity extends AppCompatActivity {
                     aVoid -> {
                         Toast.makeText(this, "Te has apuntado al evento", Toast.LENGTH_SHORT).show();
                         mostrarBotonVerAgenda();
+                        mostrarNotificacionEvento("¡Te has apuntado!", "Has confirmado tu asistencia a " + nombre + " el " + fecha);
                     },
                     e -> Toast.makeText(this, "Error al apuntarte", Toast.LENGTH_SHORT).show()
             );
@@ -122,7 +131,6 @@ public class EventoDetalleActivity extends AppCompatActivity {
         });
     }
 
-
     private String formatearFecha(String fechaOriginal) {
         try {
             SimpleDateFormat formatoEntrada = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
@@ -132,5 +140,36 @@ public class EventoDetalleActivity extends AppCompatActivity {
         } catch (Exception e) {
             return fechaOriginal;
         }
+    }
+
+    private void mostrarNotificacionEvento(String titulo, String contenido) {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        String canalId = "eventos_talahub";
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel canal = new NotificationChannel(
+                    canalId, "Eventos TalaHub", NotificationManager.IMPORTANCE_DEFAULT);
+            canal.setDescription("Notificaciones de eventos a los que te has apuntado");
+            manager.createNotificationChannel(canal);
+        }
+
+        Intent intent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, canalId)
+                .setSmallIcon(R.drawable.ic_event)
+                .setContentTitle(titulo)
+                .setContentText(contenido)
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setContentIntent(pendingIntent);
+
+        manager.notify((int) System.currentTimeMillis(), builder.build());
     }
 }
