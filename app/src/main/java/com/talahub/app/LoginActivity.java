@@ -23,6 +23,8 @@ import com.google.android.material.button.MaterialButton;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
+import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
@@ -83,22 +85,35 @@ public class LoginActivity extends AppCompatActivity {
             String password = passwordInput.getText().toString().trim();
 
             if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Completa todos los campos", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Completa todos los campos.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                Toast.makeText(this, "Introduce un correo electrónico válido", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Introduce un correo electrónico válido.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             mAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            guardarUsuarioEnFirestore("usuario");
-                            goToMain(false);
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            if (user != null && user.isEmailVerified()) {
+                                guardarUsuarioEnFirestore("usuario");
+                                goToMain(false);
+                            } else {
+                                Toast.makeText(this, "Debes verificar tu correo antes de iniciar sesión.", Toast.LENGTH_LONG).show();
+                                mAuth.signOut();
+                            }
                         } else {
-                            Toast.makeText(this, "Correo o contraseña incorrectos.", Toast.LENGTH_SHORT).show();
+                            Exception e = task.getException();
+                            if (e instanceof FirebaseAuthInvalidUserException) {
+                                Toast.makeText(this, "El correo no está registrado. Regístrate primero.", Toast.LENGTH_SHORT).show();
+                            } else if (e instanceof FirebaseAuthInvalidCredentialsException) {
+                                Toast.makeText(this, "Contraseña incorrecta.", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(this, "Error al iniciar sesión: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
                         }
                     });
         });
@@ -120,9 +135,18 @@ public class LoginActivity extends AppCompatActivity {
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            guardarUsuarioEnFirestore("usuario");
-                            Toast.makeText(this, "Cuenta creada exitosamente.", Toast.LENGTH_SHORT).show();
-                            goToMain(false);
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            if (user != null) {
+                                user.sendEmailVerification()
+                                        .addOnCompleteListener(verifyTask -> {
+                                            if (verifyTask.isSuccessful()) {
+                                                Toast.makeText(this, "Verifica tu correo antes de iniciar sesión", Toast.LENGTH_LONG).show();
+                                                mAuth.signOut();
+                                            } else {
+                                                Toast.makeText(this, "Error al enviar correo de verificación.", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                            }
                         } else {
                             if (task.getException() instanceof FirebaseAuthUserCollisionException) {
                                 Toast.makeText(this, "El correo ya está registrado.", Toast.LENGTH_SHORT).show();
