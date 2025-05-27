@@ -24,4 +24,11 @@
         android:id="@+id/nav_eventos"
         android:name="com.talahub.app.ui.admin.EventosFragment"
         tools:layout="@layout/fragment_eventos" />
+
+    <fragment
+        android:id="@+id/nav_usuarios"
+        android:name="com.talahub.app.ui.admin.GestionUsuariosFragment"
+        android:label="Gestionar usuarios"
+        tools:layout="@layout/fragment_gestion_usuarios" />
+
 </navigation>

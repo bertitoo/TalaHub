@@ -72,25 +72,25 @@ public class MainActivity extends AppCompatActivity {
         NavigationView navigationView = binding.navView;
 
         if (esAdmin) {
-            mAppBarConfiguration = new AppBarConfiguration.Builder(R.id.nav_eventos)
+            mAppBarConfiguration = new AppBarConfiguration.Builder(R.id.nav_eventos, R.id.nav_usuarios)
                     .setOpenableLayout(drawer)
                     .build();
 
-            // Oculta otros ítems
             Menu menu = navigationView.getMenu();
             menu.findItem(R.id.nav_destacados).setVisible(false);
             menu.findItem(R.id.nav_buscar).setVisible(false);
             menu.findItem(R.id.nav_agenda).setVisible(false);
             menu.findItem(R.id.nav_eventos).setVisible(true);
+            menu.findItem(R.id.nav_usuarios).setVisible(true);
         } else {
             mAppBarConfiguration = new AppBarConfiguration.Builder(
                     R.id.nav_destacados, R.id.nav_buscar, R.id.nav_agenda)
                     .setOpenableLayout(drawer)
                     .build();
 
-            // Oculta eventos
             Menu menu = navigationView.getMenu();
             menu.findItem(R.id.nav_eventos).setVisible(false);
+            menu.findItem(R.id.nav_usuarios).setVisible(false);
         }
 
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
@@ -105,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
             else if (id == R.id.nav_buscar) page = "Buscar evento";
             else if (id == R.id.nav_agenda) page = "Agenda";
             else if (id == R.id.nav_eventos) page = "Gestión de eventos";
+            else if (id == R.id.nav_usuarios) page = "Gestión de usuarios";
 
             if (page != null) {
                 getSupportActionBar().setTitle("TalaHub - " + page);
