@@ -131,7 +131,10 @@ public class MainActivity extends AppCompatActivity {
         // Navegar directamente al fragmento adecuado
         navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         if (esAdmin) {
-            navController.navigate(R.id.nav_eventos);
+            NavOptions navOptions = new NavOptions.Builder()
+                    .setPopUpTo(R.id.mobile_navigation, true)
+                    .build();
+            navController.navigate(R.id.nav_eventos, null, navOptions);
         }
     }
 
@@ -213,4 +216,14 @@ public class MainActivity extends AppCompatActivity {
             });
         }
     }
+
+    @Override
+    public void onBackPressed() {
+        if (esAdmin) {
+            moveTaskToBack(true);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
 }
