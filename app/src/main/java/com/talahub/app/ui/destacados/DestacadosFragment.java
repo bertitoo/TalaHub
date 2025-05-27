@@ -27,6 +27,7 @@ public class DestacadosFragment extends Fragment {
 
     private LinearLayout layoutEventos;
     private FirebaseHelper firebaseHelper;
+    private LayoutInflater layoutInflater;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -34,23 +35,25 @@ public class DestacadosFragment extends Fragment {
         setHasOptionsMenu(true);
         layoutEventos = root.findViewById(R.id.layout_eventos);
         firebaseHelper = new FirebaseHelper();
+        layoutInflater = inflater;
 
-        // 🔁 Cargar eventos destacados desde Firestore
-        firebaseHelper.obtenerEventosDestacados(
-                eventos -> mostrarEventos(eventos, inflater),
-                error -> Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show()
-        );
-
+        cargarEventos();
         return root;
     }
 
-    private void mostrarEventos(List<Evento> eventos, LayoutInflater inflater) {
-        layoutEventos.removeAllViews();
+    private void cargarEventos() {
+        firebaseHelper.obtenerEventosDestacados(
+                eventos -> mostrarEventos(eventos),
+                error -> Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_SHORT).show()
+        );
+    }
 
+    private void mostrarEventos(List<Evento> eventos) {
+        layoutEventos.removeAllViews();
         String uid = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         for (Evento evento : eventos) {
-            View tarjeta = inflater.inflate(R.layout.item_evento, layoutEventos, false);
+            View tarjeta = layoutInflater.inflate(R.layout.item_evento, layoutEventos, false);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             params.setMargins(0, 0, 0, 24);
@@ -67,13 +70,10 @@ public class DestacadosFragment extends Fragment {
             precio.setText(evento.getPrecio());
 
             if (evento.getImagenUrl() != null && !evento.getImagenUrl().isEmpty()) {
-                com.squareup.picasso.Picasso.get().load(evento.getImagenUrl()).into(imagen);
+                Picasso.get().load(evento.getImagenUrl()).into(imagen);
             }
 
-            // Por defecto oculto
             tvApuntado.setVisibility(View.GONE);
-
-            // Comprueba si el usuario está apuntado a este evento
             firebaseHelper.estaApuntadoAEvento(uid, evento.getId(), apuntado -> {
                 if (apuntado) {
                     tvApuntado.setVisibility(View.VISIBLE);
@@ -90,7 +90,7 @@ public class DestacadosFragment extends Fragment {
                 intent.putExtra("precio", evento.getPrecio());
                 intent.putExtra("imagen", evento.getImagenUrl());
                 intent.putExtra("descripcion", evento.getDescripcion());
-                startActivityForResult(intent, 200);
+                startActivity(intent);
             });
 
             tarjeta.setClickable(true);
@@ -101,16 +101,8 @@ public class DestacadosFragment extends Fragment {
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == 200 && resultCode == getActivity().RESULT_OK) {
-            if (data != null && data.getBooleanExtra("abrirAgenda", false)) {
-                NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment_content_main);
-                navController.navigate(R.id.nav_agenda);
-            }
-        }
+    public void onResume() {
+        super.onResume();
+        cargarEventos();
     }
-
-
 }
