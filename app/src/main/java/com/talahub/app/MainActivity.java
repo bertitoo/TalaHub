@@ -24,6 +24,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.squareup.picasso.Picasso;
 import com.talahub.app.databinding.ActivityMainBinding;
 import com.talahub.app.ui.ajustes.AjustesActivity;
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private AppBarConfiguration mAppBarConfiguration;
     private ActivityMainBinding binding;
     private GoogleSignInClient mGoogleSignInClient;
+    private boolean esAdmin = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,29 +44,67 @@ public class MainActivity extends AppCompatActivity {
 
         setSupportActionBar(binding.appBarMain.toolbar);
 
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String uid = currentUser.getUid();
+            FirebaseFirestore.getInstance().collection("usuarios").document(uid).get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            String rol = documentSnapshot.getString("rol");
+                            esAdmin = "admin".equalsIgnoreCase(rol);
+                        }
+
+                        configurarNavegacion();
+                    })
+                    .addOnFailureListener(e -> configurarNavegacion());
+        } else {
+            configurarNavegacion(); // fallback por si no hay usuario
+        }
+
+        mGoogleSignInClient = GoogleSignIn.getClient(this,
+                new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestEmail()
+                        .build());
+    }
+
+    private void configurarNavegacion() {
         DrawerLayout drawer = binding.drawerLayout;
         NavigationView navigationView = binding.navView;
 
-        mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_destacados, R.id.nav_buscar, R.id.nav_agenda)
-                .setOpenableLayout(drawer)
-                .build();
+        if (esAdmin) {
+            mAppBarConfiguration = new AppBarConfiguration.Builder(R.id.nav_eventos)
+                    .setOpenableLayout(drawer)
+                    .build();
+
+            // Oculta otros ítems
+            Menu menu = navigationView.getMenu();
+            menu.findItem(R.id.nav_destacados).setVisible(false);
+            menu.findItem(R.id.nav_buscar).setVisible(false);
+            menu.findItem(R.id.nav_agenda).setVisible(false);
+            menu.findItem(R.id.nav_eventos).setVisible(true);
+        } else {
+            mAppBarConfiguration = new AppBarConfiguration.Builder(
+                    R.id.nav_destacados, R.id.nav_buscar, R.id.nav_agenda)
+                    .setOpenableLayout(drawer)
+                    .build();
+
+            // Oculta eventos
+            Menu menu = navigationView.getMenu();
+            menu.findItem(R.id.nav_eventos).setVisible(false);
+        }
 
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-            String page = null;
             int id = destination.getId();
+            String page = null;
 
-            if (id == R.id.nav_destacados) {
-                page = "Destacados";
-            } else if (id == R.id.nav_buscar) {
-                page = "Buscar evento";
-            } else if (id == R.id.nav_agenda) {
-                page = "Agenda";
-            }
+            if (id == R.id.nav_destacados) page = "Destacados";
+            else if (id == R.id.nav_buscar) page = "Buscar evento";
+            else if (id == R.id.nav_agenda) page = "Agenda";
+            else if (id == R.id.nav_eventos) page = "Gestión de eventos";
 
             if (page != null) {
                 getSupportActionBar().setTitle("TalaHub - " + page);
@@ -73,19 +113,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Mostrar info de usuario en el panel lateral
+        // Mostrar info usuario
         actualizarHeaderUsuario();
 
         // Logout
-        NavigationView navView = binding.navView;
-        View headerView = navView.getHeaderView(0);
+        View headerView = navigationView.getHeaderView(0);
         Button logoutButton = headerView.findViewById(R.id.logout_button);
-
-        mGoogleSignInClient = GoogleSignIn.getClient(this,
-                new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                        .requestEmail()
-                        .build());
-
         logoutButton.setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut();
             mGoogleSignInClient.signOut().addOnCompleteListener(task -> {
@@ -93,6 +126,12 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             });
         });
+
+        // Navegar directamente al fragmento adecuado
+        navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+        if (esAdmin) {
+            navController.navigate(R.id.nav_eventos);
+        }
     }
 
     private void actualizarHeaderUsuario() {
@@ -155,25 +194,21 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onSupportNavigateUp() {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        return NavigationUI.navigateUp(navController, mAppBarConfiguration)
-                || super.onSupportNavigateUp();
+        return NavigationUI.navigateUp(navController, mAppBarConfiguration) || super.onSupportNavigateUp();
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(new Intent(this, MainActivity.class));
-
         if (intent != null && intent.getBooleanExtra("abrirAgenda", false)) {
-            intent.removeExtra("abrirAgenda"); // evitar múltiples ejecuciones
+            intent.removeExtra("abrirAgenda");
             binding.drawerLayout.post(() -> {
                 NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
                 NavOptions navOptions = new NavOptions.Builder()
                         .setPopUpTo(R.id.mobile_navigation, true)
                         .build();
-
                 navController.navigate(R.id.nav_agenda, null, navOptions);
-
             });
         }
     }

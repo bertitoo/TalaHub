@@ -8,6 +8,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.talahub.app.models.Evento;
+import com.talahub.app.models.Usuario;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -102,6 +103,15 @@ public class FirebaseHelper {
                         callback.accept(false); // Si falla, asumimos que NO está apuntado
                     }
                 });
+    }
+
+    public void guardarUsuario(Usuario usuario) {
+        FirebaseFirestore.getInstance()
+                .collection("usuarios")
+                .document(usuario.getUid())
+                .set(usuario)
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "Usuario guardado"))
+                .addOnFailureListener(e -> Log.e(TAG, "Error al guardar usuario", e));
     }
 
 }
