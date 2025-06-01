@@ -22,7 +22,7 @@
 
     <fragment
         android:id="@+id/nav_eventos"
-        android:name="com.talahub.app.ui.admin.EventosFragment"
+        android:name="com.talahub.app.ui.admin.GestionEventosFragment"
         tools:layout="@layout/fragment_eventos" />
 
     <fragment
