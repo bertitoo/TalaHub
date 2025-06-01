@@ -27,6 +27,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.squareup.picasso.Picasso;
 import com.talahub.app.R;
+import com.talahub.app.firebase.FirebaseHelper;
 import com.talahub.app.models.Evento;
 
 import java.io.File;
@@ -83,21 +84,15 @@ public class AgendaFragment extends Fragment {
             return;
         }
 
-        FirebaseFirestore.getInstance()
-                .collection("agendas")
-                .document(uid)
-                .collection("eventos")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
+        FirebaseHelper helper = new FirebaseHelper();
+        helper.obtenerEventosEnAgenda(uid,
+                eventos -> {
                     eventosOriginales.clear();
-                    for (var doc : queryDocumentSnapshots) {
-                        Evento evento = doc.toObject(Evento.class);
-                        eventosOriginales.add(evento);
-                    }
+                    eventosOriginales.addAll(eventos);
                     filtrarEventosAgenda("", inflater);
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Error al cargar tu agenda", Toast.LENGTH_SHORT).show());
+                },
+                error -> Toast.makeText(getContext(), "Error al cargar tu agenda", Toast.LENGTH_SHORT).show()
+        );
     }
 
     private void filtrarEventosAgenda(String query, LayoutInflater inflater) {
@@ -254,13 +249,9 @@ public class AgendaFragment extends Fragment {
 
     private void eliminarEventoDeAgenda(String eventoId, View itemView, LayoutInflater inflater) {
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        FirebaseFirestore.getInstance()
-                .collection("agendas")
-                .document(uid)
-                .collection("eventos")
-                .document(eventoId)
-                .delete()
-                .addOnSuccessListener(aVoid -> {
+        FirebaseHelper helper = new FirebaseHelper();
+        helper.quitarApunteEvento(eventoId, uid,
+                aVoid -> {
                     itemView.animate()
                             .alpha(0f)
                             .setDuration(350)
@@ -270,9 +261,9 @@ public class AgendaFragment extends Fragment {
                             })
                             .start();
                     Toast.makeText(getContext(), "Evento eliminado de tu agenda", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(getContext(), "Error al eliminar el evento", Toast.LENGTH_SHORT).show());
+                },
+                e -> Toast.makeText(getContext(), "Error al eliminar el evento", Toast.LENGTH_SHORT).show()
+        );
     }
 
     private void compartirEvento(Evento evento) {

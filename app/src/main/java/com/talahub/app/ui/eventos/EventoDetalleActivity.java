@@ -76,22 +76,18 @@ public class EventoDetalleActivity extends AppCompatActivity {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null && id != null) {
             String uid = user.getUid();
-            FirebaseFirestore.getInstance()
-                    .collection("agendas")
-                    .document(uid)
-                    .collection("eventos")
-                    .document(id)
-                    .get()
-                    .addOnSuccessListener(doc -> {
-                        if (doc.exists()) {
-                            mostrarBotonVerAgenda();
-                        } else {
-                            mostrarBotonApuntarse(uid, id, nombre, descripcionTexto, fecha, hora, lugar, precioTexto, imagenUrl);
-                        }
-                    });
+            // Usamos FirebaseHelper para comprobar si está apuntado
+            FirebaseHelper helper = new FirebaseHelper();
+            helper.estaApuntadoAEvento(uid, id, apuntado -> {
+                if (apuntado) {
+                    mostrarBotonVerAgenda();
+                } else {
+                    mostrarBotonApuntarse(uid, id, nombre, descripcionTexto, fecha, hora, lugar, precioTexto, imagenUrl);
+                }
+            });
         } else {
             btnApuntarse.setOnClickListener(v ->
-                    Toast.makeText(this, "Debes iniciar sesión para apuntarte", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "No has podido apuntarte al evento.", Toast.LENGTH_SHORT).show()
             );
         }
 
@@ -107,13 +103,13 @@ public class EventoDetalleActivity extends AppCompatActivity {
 
         btnApuntarse.setText("Apuntarme");
         btnApuntarse.setOnClickListener(v -> {
-            Evento evento = new Evento(id, nombre, descripcion, fecha, hora, lugar, precio, imagenUrl, true);
             FirebaseHelper helper = new FirebaseHelper();
-            helper.apuntarseAEvento(evento, uid,
+            helper.apuntarseAEvento(id, uid,
                     aVoid -> {
                         Toast.makeText(this, "Te has apuntado al evento", Toast.LENGTH_SHORT).show();
                         mostrarBotonVerAgenda();
-                        mostrarNotificacionEvento("¡Te has apuntado!", "Has confirmado tu asistencia a " + nombre + " el " + fecha);
+                        mostrarNotificacionEvento("¡Te has apuntado!", "Has confirmado tu asistencia a "
+                                + nombre + " el " + fecha);
                     },
                     e -> Toast.makeText(this, "Error al apuntarte", Toast.LENGTH_SHORT).show()
             );
