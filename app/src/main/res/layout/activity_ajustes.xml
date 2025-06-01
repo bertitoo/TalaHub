@@ -2,6 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#FFFFFF">
 
   <LinearLayout
@@ -60,6 +61,18 @@
         android:text="Idioma: Español"
         android:textColor="#666"
         android:layout_marginTop="8dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_delete_account"
+        style="@style/Widget.MaterialComponents.Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Eliminar cuenta"
+        android:textAllCaps="false"
+        android:layout_marginTop="32dp"
+        android:paddingVertical="12dp"
+        android:backgroundTint="@android:color/holo_red_dark"
+        app:cornerRadius="28dp" />
 
   </LinearLayout>
 </ScrollView>
