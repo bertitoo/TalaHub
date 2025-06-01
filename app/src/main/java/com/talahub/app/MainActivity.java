@@ -71,26 +71,32 @@ public class MainActivity extends AppCompatActivity {
         DrawerLayout drawer = binding.drawerLayout;
         NavigationView navigationView = binding.navView;
 
-        if (esAdmin) {
-            mAppBarConfiguration = new AppBarConfiguration.Builder(R.id.nav_eventos, R.id.nav_usuarios)
-                    .setOpenableLayout(drawer)
-                    .build();
+        Menu menu = navigationView.getMenu();
 
-            Menu menu = navigationView.getMenu();
-            menu.findItem(R.id.nav_destacados).setVisible(false);
-            menu.findItem(R.id.nav_buscar).setVisible(false);
-            menu.findItem(R.id.nav_agenda).setVisible(false);
+        if (esAdmin) {
+            // Mostrar todos los ítems al admin
+            menu.findItem(R.id.nav_destacados).setVisible(true);
+            menu.findItem(R.id.nav_buscar).setVisible(true);
+            menu.findItem(R.id.nav_agenda).setVisible(true);
             menu.findItem(R.id.nav_eventos).setVisible(true);
             menu.findItem(R.id.nav_usuarios).setVisible(true);
+
+            mAppBarConfiguration = new AppBarConfiguration.Builder(
+                    R.id.nav_destacados, R.id.nav_buscar, R.id.nav_agenda, R.id.nav_eventos, R.id.nav_usuarios)
+                    .setOpenableLayout(drawer)
+                    .build();
         } else {
+            // Mostrar solo los ítems de usuario normal
+            menu.findItem(R.id.nav_destacados).setVisible(true);
+            menu.findItem(R.id.nav_buscar).setVisible(true);
+            menu.findItem(R.id.nav_agenda).setVisible(true);
+            menu.findItem(R.id.nav_eventos).setVisible(false);
+            menu.findItem(R.id.nav_usuarios).setVisible(false);
+
             mAppBarConfiguration = new AppBarConfiguration.Builder(
                     R.id.nav_destacados, R.id.nav_buscar, R.id.nav_agenda)
                     .setOpenableLayout(drawer)
                     .build();
-
-            Menu menu = navigationView.getMenu();
-            menu.findItem(R.id.nav_eventos).setVisible(false);
-            menu.findItem(R.id.nav_usuarios).setVisible(false);
         }
 
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
