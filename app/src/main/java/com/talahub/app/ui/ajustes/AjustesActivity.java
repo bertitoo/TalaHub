@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
@@ -109,6 +110,28 @@ public class AjustesActivity extends AppCompatActivity {
         });
 
         binding.buttonTerminos.setOnClickListener(v -> mostrarDialogoTerminos());
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            String uid = currentUser.getUid();
+
+            db.collection("usuarios").document(uid).get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            String rol = documentSnapshot.getString("rol");
+                            if ("admin".equalsIgnoreCase(rol)) {
+                                binding.buttonDeleteAccount.setEnabled(false);
+
+                                // Estilizar para que se lea mejor aunque esté desactivado
+                                binding.buttonDeleteAccount.setBackgroundColor(Color.parseColor("#FFB3B3"));
+                                binding.buttonDeleteAccount.setTextColor(Color.parseColor("#80000000"));
+                            }
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Error al obtener datos del usuario", Toast.LENGTH_SHORT).show();
+                    });
+        }
     }
 
     private void solicitarPermisoNotificaciones() {
