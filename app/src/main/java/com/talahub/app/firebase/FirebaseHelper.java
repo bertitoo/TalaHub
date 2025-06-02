@@ -12,9 +12,13 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.talahub.app.models.Evento;
 import com.talahub.app.models.Usuario;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -187,5 +191,84 @@ public class FirebaseHelper {
                 .delete()
                 .addOnSuccessListener(onSuccess)
                 .addOnFailureListener(onFailure);
+    }
+
+    public void buscarEventosFiltrados(String texto, String fechaInicio, String fechaFin, String horaInicio, String horaFin, String precioFiltro,
+                                       Consumer<List<Evento>> onSuccess, Consumer<String> onFailure) {
+
+        db.collection(COLLECTION_EVENTOS)
+                .get()
+                .addOnSuccessListener(query -> {
+                    List<Evento> resultado = new ArrayList<>();
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+
+                    for (QueryDocumentSnapshot doc : query) {
+                        Evento e = doc.toObject(Evento.class);
+
+                        boolean coincideTexto = texto.isEmpty() ||
+                                e.getNombre().toLowerCase().contains(texto.toLowerCase()) ||
+                                e.getLugar().toLowerCase().contains(texto.toLowerCase()) ||
+                                e.getDescripcion().toLowerCase().contains(texto.toLowerCase());
+
+                        boolean coincideFecha = true;
+                        try {
+                            Date fechaEvento = sdf.parse(e.getFecha());
+                            if (!fechaInicio.isEmpty()) {
+                                Date inicio = sdf.parse(fechaInicio);
+                                if (fechaEvento.before(inicio)) coincideFecha = false;
+                            }
+                            if (!fechaFin.isEmpty()) {
+                                Date fin = sdf.parse(fechaFin);
+                                if (fechaEvento.after(fin)) coincideFecha = false;
+                            }
+                        } catch (ParseException ex) {
+                            coincideFecha = false;
+                        }
+
+                        boolean coincideHora = true;
+                        try {
+                            SimpleDateFormat sdfHora = new SimpleDateFormat("HH:mm", Locale.getDefault());
+                            Date horaEvento = sdfHora.parse(e.getHora());
+
+                            if (!horaInicio.isEmpty()) {
+                                Date inicio = sdfHora.parse(horaInicio);
+                                if (horaEvento.before(inicio)) coincideHora = false;
+                            }
+                            if (!horaFin.isEmpty()) {
+                                Date fin = sdfHora.parse(horaFin);
+                                if (horaEvento.after(fin)) coincideHora = false;
+                            }
+                        } catch (Exception ex) {
+                            coincideHora = false;
+                        }
+
+                        boolean coincidePrecio = true;
+                        try {
+                            String precioStr = e.getPrecio() == null ? "gratis" :
+                                    e.getPrecio().toLowerCase().replace("€", "").replace(",", ".").trim();
+                            double precio = precioStr.equals("gratis") ? 0 : Double.parseDouble(precioStr);
+
+                            switch (precioFiltro) {
+                                case "Gratis": coincidePrecio = precio == 0; break;
+                                case "0 - 4,99 €": coincidePrecio = precio > 0 && precio <= 4.99; break;
+                                case "5 € o más": coincidePrecio = precio >= 5; break;
+                                default: coincidePrecio = true;
+                            }
+                        } catch (Exception ignored) {}
+
+                        if (coincideTexto && coincideFecha && coincideHora && coincidePrecio) {
+                            resultado.add(e);
+                        }
+                    }
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        onSuccess.accept(resultado);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        onFailure.accept(e.getMessage());
+                    }
+                });
     }
 }

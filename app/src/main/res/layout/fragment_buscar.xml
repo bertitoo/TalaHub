@@ -51,6 +51,18 @@
                     android:contentDescription="Evento aleatorio" />
             </LinearLayout>
 
+            <Button
+                android:id="@+id/btnFiltros"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Filtros"
+                android:drawableStart="@drawable/ic_filter"
+                android:backgroundTint="@color/color_naranja"
+                android:textColor="@android:color/white"
+                android:layout_marginBottom="8dp"
+                android:layout_gravity="start"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
             <!-- Resultados -->
             <LinearLayout
                 android:id="@+id/layout_resultados_busqueda"

@@ -1,6 +1,8 @@
 package com.talahub.app.ui.buscar;
 
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -10,10 +12,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,8 +31,13 @@ import com.talahub.app.firebase.FirebaseHelper;
 import com.talahub.app.models.Evento;
 import com.talahub.app.ui.eventos.EventoDetalleActivity;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 public class BuscarFragment extends Fragment {
@@ -40,6 +50,10 @@ public class BuscarFragment extends Fragment {
     private final Random random = new Random();
     private SharedPreferences prefs;
 
+    private String filtroFechaInicio = "", filtroFechaFin = "", filtroHora = "", filtroPrecio = "";
+
+    private EditText etBuscar;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,48 +61,41 @@ public class BuscarFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_buscar, container, false);
 
-        EditText   etBuscar   = root.findViewById(R.id.etBuscarEvento);
+        etBuscar = root.findViewById(R.id.etBuscarEvento);
         ImageButton btnRandom = root.findViewById(R.id.btnRandom);
-        layoutResultados      = root.findViewById(R.id.layout_resultados_busqueda);
+        Button btnFiltros = root.findViewById(R.id.btnFiltros);
+        layoutResultados = root.findViewById(R.id.layout_resultados_busqueda);
 
         btnRandom.setOnClickListener(v -> new AlertDialog.Builder(requireContext())
                 .setTitle("Evento aleatorio")
                 .setMessage("¿Quieres generar un evento aleatorio?")
                 .setPositiveButton("Sí", (d, w) -> {
-
-                    // 1. Mostrar overlay
                     View overlay = requireView().findViewById(R.id.overlayRandom);
                     overlay.setVisibility(View.VISIBLE);
-
-                    // 2. Iniciar animación
                     v.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.rotate_spin));
-
-                    // 3. Ejecutar acción después de delay
                     v.postDelayed(() -> {
                         lanzarEventoAleatorio();
-                        overlay.setVisibility(View.GONE); // ocultar overlay después
+                        overlay.setVisibility(View.GONE);
                     }, 800);
-
                 })
                 .setNegativeButton("Cancelar", null)
                 .show());
 
+        btnFiltros.setOnClickListener(v -> mostrarDialogoFiltros(inflater));
+
         new FirebaseHelper().obtenerTodosLosEventos(eventos -> {
             eventosOriginales.clear();
             eventosOriginales.addAll(eventos);
-            mostrarResultados(eventosOriginales, inflater);
-        }, error -> Toast.makeText(getContext(),
-                "Error al cargar eventos", Toast.LENGTH_SHORT).show());
+            mostrarResultados(eventos, inflater);
+        }, error -> Toast.makeText(getContext(), "Error al cargar eventos", Toast.LENGTH_SHORT).show());
 
         etBuscar.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filtrarEventos(s.toString().trim(), inflater);
+                aplicarFiltros(inflater);
             }
             @Override public void afterTextChanged(Editable s) {}
         });
@@ -131,16 +138,19 @@ public class BuscarFragment extends Fragment {
         startActivity(intent);
     }
 
-    private void filtrarEventos(String query, LayoutInflater inflater) {
-        List<Evento> filtrados = new ArrayList<>();
-        for (Evento e : eventosOriginales) {
-            if (e.getNombre().toLowerCase().contains(query.toLowerCase()) ||
-                    e.getLugar().toLowerCase().contains(query.toLowerCase()) ||
-                    e.getDescripcion().toLowerCase().contains(query.toLowerCase())) {
-                filtrados.add(e);
-            }
-        }
-        mostrarResultados(filtrados, inflater);
+    private void aplicarFiltros(LayoutInflater inflater) {
+        String texto = etBuscar.getText().toString().trim();
+
+        new FirebaseHelper().buscarEventosFiltrados(
+                texto,
+                filtroFechaInicio,
+                filtroFechaFin,
+                filtroHoraInicio,
+                filtroHoraFin,
+                filtroPrecio,
+                eventos -> mostrarResultados(eventos, inflater),
+                error -> Toast.makeText(getContext(), "Error al filtrar eventos", Toast.LENGTH_SHORT).show()
+        );
     }
 
     private void mostrarResultados(List<Evento> eventos, LayoutInflater inflater) {
@@ -161,19 +171,18 @@ public class BuscarFragment extends Fragment {
             TextView tvApuntado = item.findViewById(R.id.tvApuntadoBusqueda);
             tvApuntado.setVisibility(View.GONE);
 
-            TextView nombre      = item.findViewById(R.id.tvNombreEventoBusqueda);
-            TextView fechaHora   = item.findViewById(R.id.tvFechaHoraBusqueda);
-            TextView lugar       = item.findViewById(R.id.tvLugarBusqueda);
-            TextView precio      = item.findViewById(R.id.tvPrecioBusqueda);
-            ImageView imagen     = item.findViewById(R.id.ivImagenBusqueda);
-            ImageView ivDestacado= item.findViewById(R.id.ivDestacadoBusqueda);
+            TextView nombre = item.findViewById(R.id.tvNombreEventoBusqueda);
+            TextView fechaHora = item.findViewById(R.id.tvFechaHoraBusqueda);
+            TextView lugar = item.findViewById(R.id.tvLugarBusqueda);
+            TextView precio = item.findViewById(R.id.tvPrecioBusqueda);
+            ImageView imagen = item.findViewById(R.id.ivImagenBusqueda);
+            ImageView ivDestacado = item.findViewById(R.id.ivDestacadoBusqueda);
 
             nombre.setText(evento.getNombre());
             fechaHora.setText(evento.getFecha() + " - " + evento.getHora());
             lugar.setText(evento.getLugar());
 
-            if (evento.getPrecio() == null || evento.getPrecio().trim().isEmpty() ||
-                    evento.getPrecio().trim().equalsIgnoreCase("gratis")) {
+            if (evento.getPrecio() == null || evento.getPrecio().trim().isEmpty() || evento.getPrecio().trim().equalsIgnoreCase("gratis")) {
                 precio.setText("Precio: Gratis");
             } else {
                 precio.setText("Precio: " + evento.getPrecio());
@@ -187,8 +196,7 @@ public class BuscarFragment extends Fragment {
 
             ivDestacado.setVisibility(evento.isDestacado() ? View.VISIBLE : View.GONE);
 
-            item.setForeground(ContextCompat.getDrawable(requireContext(),
-                    R.drawable.ripple_effect));
+            item.setForeground(ContextCompat.getDrawable(requireContext(), R.drawable.ripple_effect));
             item.setOnClickListener(v -> abrirDetalle(evento));
 
             String uid = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -200,5 +208,70 @@ public class BuscarFragment extends Fragment {
 
             layoutResultados.addView(item);
         }
+    }
+
+    private String filtroHoraInicio = "", filtroHoraFin = "";
+
+    private void mostrarDialogoFiltros(LayoutInflater inflater) {
+        View dialogView = inflater.inflate(R.layout.dialog_filtros, null);
+        EditText etInicio = dialogView.findViewById(R.id.etFechaInicio);
+        EditText etFin = dialogView.findViewById(R.id.etFechaFin);
+        EditText etHoraInicio = dialogView.findViewById(R.id.etHoraInicio);
+        EditText etHoraFin = dialogView.findViewById(R.id.etHoraFin);
+        Spinner spinnerPrecio = dialogView.findViewById(R.id.spinnerPrecio);
+
+        String[] opciones = {"Cualquiera", "Gratis", "0 - 4,99 €", "5 € o más"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, opciones);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerPrecio.setAdapter(adapter);
+
+        // Prellenar filtros existentes
+        etInicio.setText(filtroFechaInicio);
+        etFin.setText(filtroFechaFin);
+        etHoraInicio.setText(filtroHoraInicio);
+        etHoraFin.setText(filtroHoraFin);
+        int pos = List.of(opciones).indexOf(filtroPrecio);
+        if (pos >= 0) spinnerPrecio.setSelection(pos);
+
+        // Pickers
+        etInicio.setOnClickListener(v -> mostrarDatePicker(etInicio));
+        etFin.setOnClickListener(v -> mostrarDatePicker(etFin));
+        etHoraInicio.setOnClickListener(v -> mostrarTimePicker(etHoraInicio));
+        etHoraFin.setOnClickListener(v -> mostrarTimePicker(etHoraFin));
+
+        new AlertDialog.Builder(requireContext())
+                .setView(dialogView)
+                .setPositiveButton("Aplicar", (dialog, which) -> {
+                    filtroFechaInicio = etInicio.getText().toString().trim();
+                    filtroFechaFin = etFin.getText().toString().trim();
+                    filtroHoraInicio = etHoraInicio.getText().toString().trim();
+                    filtroHoraFin = etHoraFin.getText().toString().trim();
+                    filtroPrecio = spinnerPrecio.getSelectedItem().toString();
+                    aplicarFiltros(inflater);
+                })
+                .setNegativeButton("Cancelar", null)
+                .setNeutralButton("Limpiar", (dialog, which) -> {
+                    filtroFechaInicio = filtroFechaFin = filtroHoraInicio = filtroHoraFin = filtroPrecio = "";
+                    aplicarFiltros(inflater);
+                })
+                .show();
+    }
+
+    private void mostrarDatePicker(EditText target) {
+        Calendar calendar = Calendar.getInstance();
+        new DatePickerDialog(requireContext(), (view, y, m, d) -> {
+            String fecha = String.format(Locale.getDefault(), "%02d-%02d-%04d", d, m + 1, y);
+            target.setText(fecha);
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
+    }
+
+
+    private void mostrarTimePicker(EditText target) {
+        Calendar calendar = Calendar.getInstance();
+        TimePickerDialog tp = new TimePickerDialog(requireContext(), (view, h, m) -> {
+            String hora = String.format(Locale.getDefault(), "%02d:%02d", h, m);
+            target.setText(hora);
+        }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true);
+        tp.show();
     }
 }
