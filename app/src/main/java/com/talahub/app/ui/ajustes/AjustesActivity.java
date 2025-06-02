@@ -27,6 +27,11 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.talahub.app.LoginActivity;
 import com.talahub.app.databinding.ActivityAjustesBinding;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
 public class AjustesActivity extends AppCompatActivity {
 
     private static final int REQUEST_NOTIFICATION_PERMISSION = 1001;
@@ -102,6 +107,8 @@ public class AjustesActivity extends AppCompatActivity {
         binding.buttonDeleteAccount.setOnClickListener(v -> {
             mostrarDialogoConfirmacionEliminar();
         });
+
+        binding.buttonTerminos.setOnClickListener(v -> mostrarDialogoTerminos());
     }
 
     private void solicitarPermisoNotificaciones() {
@@ -139,6 +146,29 @@ public class AjustesActivity extends AppCompatActivity {
         finish();
         return true;
     }
+
+    private void mostrarDialogoTerminos() {
+        try {
+            InputStream is = getAssets().open("terminos.txt");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+            StringBuilder builder = new StringBuilder();
+            String linea;
+            while ((linea = reader.readLine()) != null) {
+                builder.append(linea).append("\n");
+            }
+            reader.close();
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Términos y condiciones")
+                    .setMessage(builder.toString())
+                    .setPositiveButton("Aceptar", null)
+                    .show();
+
+        } catch (IOException e) {
+            Toast.makeText(this, "Error al cargar los términos", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
     private void mostrarDialogoConfirmacionEliminar() {
         new AlertDialog.Builder(this)
