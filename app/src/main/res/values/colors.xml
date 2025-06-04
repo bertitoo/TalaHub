@@ -7,5 +7,10 @@
     <color name="texto_secundario">#757575</color>
     <color name="color_verde">#4CAF50</color>
     <color name="color_negro">#000000</color>
+    <color name="fondo_principal">#f5f7fb</color>
+    <color name="texto_boton">#FFFFFF</color>
+    <color name="overlay_fondo">#88000000</color>
+    <color name="fondo_tarjeta">#FFFFFF</color>
+    <color name="fondo_imagen">#F0F0F0</color>
 
 </resources>

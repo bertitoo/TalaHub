@@ -107,10 +107,14 @@ public class AjustesActivity extends AppCompatActivity {
                 : AppCompatDelegate.MODE_NIGHT_NO);
 
         binding.switchDarkMode.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            // Evitamos que el cambio de tema vuelva a activar el listener en bucle
+            binding.switchDarkMode.setOnCheckedChangeListener(null);
+
             prefs.edit().putBoolean(KEY_DARK_MODE, isChecked).apply();
-            AppCompatDelegate.setDefaultNightMode(isChecked
-                    ? AppCompatDelegate.MODE_NIGHT_YES
-                    : AppCompatDelegate.MODE_NIGHT_NO);
+
+            AppCompatDelegate.setDefaultNightMode(
+                    isChecked ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO
+            );
         });
 
         // Información general
