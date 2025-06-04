@@ -11,10 +11,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.navigation.NavController;
+import androidx.navigation.NavHost;
 import androidx.navigation.NavOptions;
-import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
@@ -49,6 +51,12 @@ public class MainActivity extends AppCompatActivity {
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SharedPreferences prefs = getSharedPreferences("talahub_settings", MODE_PRIVATE);
+        boolean darkMode = prefs.getBoolean("dark_mode", false);
+
+        AppCompatDelegate.setDefaultNightMode(
+                darkMode ? AppCompatDelegate.MODE_NIGHT_YES : AppCompatDelegate.MODE_NIGHT_NO
+        );
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -111,7 +119,16 @@ public class MainActivity extends AppCompatActivity {
                     .build();
         }
 
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+        // Evitar crash al buscar el NavController si el fragmento aún no está listo
+        NavHostFragment navHostFragment = (NavHostFragment)
+                getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_content_main);
+
+        if (navHostFragment == null) {
+            return; // Evitar continuar si no se encuentra el host fragment
+        }
+
+        NavController navController = navHostFragment.getNavController();
+
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
@@ -213,8 +230,11 @@ public class MainActivity extends AppCompatActivity {
             actualizarHeaderUsuario();
         } else if (requestCode == 200 && resultCode == RESULT_OK) {
             if (data != null && data.getBooleanExtra("abrirAgenda", false)) {
-                NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-                navController.navigate(R.id.nav_agenda);
+                NavHostFragment navHostFragment = (NavHostFragment)
+                        getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_content_main);
+                if (navHostFragment != null) {
+                    navHostFragment.getNavController().navigate(R.id.nav_agenda);
+                }
             }
         }
     }
@@ -224,8 +244,13 @@ public class MainActivity extends AppCompatActivity {
      */
     @Override
     public boolean onSupportNavigateUp() {
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        return NavigationUI.navigateUp(navController, mAppBarConfiguration) || super.onSupportNavigateUp();
+        NavHostFragment navHostFragment = (NavHostFragment)
+                getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_content_main);
+        if (navHostFragment != null) {
+            return NavigationUI.navigateUp(navHostFragment.getNavController(), mAppBarConfiguration)
+                    || super.onSupportNavigateUp();
+        }
+        return super.onSupportNavigateUp();
     }
 
     /**
@@ -238,11 +263,14 @@ public class MainActivity extends AppCompatActivity {
         if (intent != null && intent.getBooleanExtra("abrirAgenda", false)) {
             intent.removeExtra("abrirAgenda");
             binding.drawerLayout.post(() -> {
-                NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-                NavOptions navOptions = new NavOptions.Builder()
-                        .setPopUpTo(R.id.mobile_navigation, true)
-                        .build();
-                navController.navigate(R.id.nav_agenda, null, navOptions);
+                NavHostFragment navHostFragment = (NavHostFragment)
+                        getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_content_main);
+                if (navHostFragment != null) {
+                    NavOptions navOptions = new NavOptions.Builder()
+                            .setPopUpTo(R.id.mobile_navigation, true)
+                            .build();
+                    navHostFragment.getNavController().navigate(R.id.nav_agenda, null, navOptions);
+                }
             });
         }
     }
