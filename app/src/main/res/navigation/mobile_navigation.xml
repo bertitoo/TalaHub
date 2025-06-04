@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/nav_destacados">
+
+    <fragment
+        android:id="@+id/nav_buscar"
+        android:name="com.talahub.app.ui.buscar.BuscarFragment"
+        tools:layout="@layout/fragment_buscar" />
+
+    <fragment
+        android:id="@+id/nav_destacados"
+        android:name="com.talahub.app.ui.destacados.DestacadosFragment"
+        tools:layout="@layout/fragment_destacados" />
+
+    <fragment
+        android:id="@+id/nav_agenda"
+        android:name="com.talahub.app.ui.agenda.AgendaFragment"
+        tools:layout="@layout/fragment_agenda" />
+
+    <fragment
+        android:id="@+id/nav_eventos"
+        android:name="com.talahub.app.ui.admin.GestionEventosFragment"
+        tools:layout="@layout/fragment_eventos" />
+
+    <fragment
+        android:id="@+id/nav_usuarios"
+        android:name="com.talahub.app.ui.admin.GestionUsuariosFragment"
+        android:label="Gestionar usuarios"
+        tools:layout="@layout/fragment_gestion_usuarios" />
+
+</navigation>

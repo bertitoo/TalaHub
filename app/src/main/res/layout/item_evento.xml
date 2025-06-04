@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="6dp"
+    app:cardBackgroundColor="@color/color_blanco">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Imagen del evento -->
+        <ImageView
+            android:id="@+id/ivImagenEvento"
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:scaleType="centerCrop"
+            android:background="@color/color_azul"
+            android:contentDescription="Imagen del evento" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <!-- Título -->
+            <TextView
+                android:id="@+id/tvNombreEvento"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nombre del evento"
+                android:textColor="@color/texto_principal"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <!-- Justo después del título -->
+            <TextView
+                android:id="@+id/tvApuntado"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Apuntado  ✔️"
+                android:textColor="@color/color_azul"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                android:layout_marginTop="4dp"/>
+
+            <!-- Fecha + lugar -->
+            <TextView
+                android:id="@+id/tvFechaLugar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2025-06-01 • Lugar"
+                android:textColor="@color/texto_secundario"
+                android:textSize="14sp"
+                android:layout_marginTop="4dp" />
+
+            <!-- Precio -->
+            <TextView
+                android:id="@+id/tvPrecio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gratis"
+                android:textColor="@color/color_naranja"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginTop="6dp" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

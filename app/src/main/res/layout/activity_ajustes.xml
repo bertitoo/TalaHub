@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="#FFFFFF">
+
+  <LinearLayout
+      android:orientation="vertical"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ajustes"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="#0075C9"
+        android:layout_marginBottom="24dp" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_notifications"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Recibir notificaciones"
+        android:textSize="16sp"
+        android:textColor="#444" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_show_email"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Mostrar correo"
+        android:textSize="16sp"
+        android:textColor="#444"
+        android:layout_marginTop="16dp" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switch_dark_mode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Modo oscuro"
+        android:textSize="16sp"
+        android:textColor="#444"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/text_version"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Versión: 1.0"
+        android:textColor="#666"
+        android:layout_marginTop="24dp" />
+
+    <TextView
+        android:id="@+id/text_idioma"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Idioma: Español"
+        android:textColor="#666"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/text_ciudad"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ciudad/Región: Talavera de la Reina"
+        android:textColor="#666"
+        android:layout_marginTop="8dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_delete_account"
+        style="@style/Widget.MaterialComponents.Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Eliminar cuenta"
+        android:textAllCaps="false"
+        android:layout_marginTop="32dp"
+        android:paddingVertical="12dp"
+        android:backgroundTint="@android:color/holo_red_dark"
+        app:cornerRadius="28dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_terminos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ver términos y condiciones"
+        android:textAllCaps="false"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="@color/color_azul"
+        android:textColor="@color/color_blanco"
+        app:cornerRadius="28dp"/>
+
+  </LinearLayout>
+</ScrollView>

@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/color_blanco">
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollViewEditar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/tvEditarEvento"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Editar evento"
+                android:textColor="@color/color_azul"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp"/>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="8dp"
+                app:strokeColor="@android:color/darker_gray"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@color/color_blanco">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:hint="Nombre del evento"
+                        app:startIconDrawable="@drawable/ic_event"
+                        app:startIconTint="@color/color_naranja"
+                        app:boxStrokeColor="@color/color_naranja">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etNombreEvento"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textCapWords"
+                            android:textColor="@color/color_negro"
+                            android:textSize="16sp"
+                            android:textStyle="normal" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:hint="Fecha"
+                        app:endIconMode="custom"
+                        app:endIconDrawable="@drawable/ic_schedule"
+                        app:endIconTint="@color/color_naranja"
+                        app:boxStrokeColor="@color/color_naranja">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etFechaEvento"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:focusable="false"
+                            android:clickable="true"
+                            android:inputType="none"
+                            android:textColor="@color/color_negro"
+                            android:textSize="16sp"
+                            android:textStyle="normal" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:hint="Hora"
+                        app:endIconMode="custom"
+                        app:endIconDrawable="@drawable/ic_clock"
+                        app:endIconTint="@color/color_naranja"
+                        app:boxStrokeColor="@color/color_naranja">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etHoraEvento"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:focusable="false"
+                            android:clickable="true"
+                            android:inputType="none"
+                            android:textColor="@color/color_negro"
+                            android:textSize="16sp"
+                            android:textStyle="normal" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:hint="Ubicación"
+                        android:enabled="false"
+                        app:startIconDrawable="@drawable/ic_location"
+                        app:startIconTint="@color/color_naranja"
+                        app:boxStrokeColor="@color/color_naranja">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etUbicacionEvento"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:enabled="false"
+                            android:focusable="false"
+                            android:clickable="false"
+                            android:textColor="@color/color_negro"
+                            android:textSize="16sp"
+                            android:textStyle="normal" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="24dp"
+                        android:hint="Descripción"
+                        app:boxStrokeColor="@color/color_naranja">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etDescripcionEvento"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:minLines="4"
+                            android:gravity="top"
+                            android:inputType="textMultiLine"
+                            android:textColor="@color/color_negro"
+                            android:textSize="16sp"
+                            android:textStyle="normal" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <TextView
+                        android:id="@+id/tvLugarEvento"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Lugar del evento"
+                        android:textColor="@color/color_naranja"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="8dp"/>
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:layout_marginBottom="24dp"
+                        android:background="@android:color/darker_gray"
+                        android:clipToPadding="false"
+                        android:clipToOutline="true"
+                        app:cardCornerRadius="12dp">
+
+                        <ImageView
+                            android:id="@+id/ivPreviewImagen"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:enabled="false"
+                            android:alpha="0.5"
+                            android:contentDescription="Vista previa de imagen" />
+                    </FrameLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnGuardarEvento"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:text="GUARDAR"
+                        android:textAllCaps="true"
+                        android:textColor="@color/color_blanco"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="24dp"
+                        app:icon="@drawable/ic_save"
+                        app:iconPadding="8dp"
+                        app:iconTint="@color/color_blanco"
+                        app:backgroundTint="@color/color_naranja"
+                        style="@style/Widget.MaterialComponents.Button" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCancelarEvento"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="CANCELAR"
+                        android:textAllCaps="true"
+                        android:textColor="@color/color_naranja"
+                        android:textSize="16sp"
+                        android:textStyle="normal"
+                        app:cornerRadius="24dp"
+                        app:strokeColor="@color/color_naranja"
+                        app:strokeWidth="1dp"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
