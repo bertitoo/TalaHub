@@ -10,11 +10,11 @@
 
 - Iniciar sesión con Google o mediante correo electrónico y contraseña.
 - Consultar eventos destacados de forma visual y organizada.
-- Buscar eventos por texto y filtrar por categoría.
+- Buscar eventos por texto, filtrar por fecha, hora o precio y generar eventos aleatoriamente.
 - Consultar información detallada de cada evento: descripción, imagen, ubicación, fecha, hora y precio.
 - Añadir eventos a una agenda personal y gestionarlos desde un apartado exclusivo.
 - Consultar la previsión meteorológica para cada evento.
-- Administradores: crear, editar y eliminar eventos desde la app.
+- Administradores: Editar y eliminar eventos y/o usuarios desde la app.
 
 ---
 
@@ -32,14 +32,14 @@
 
 ## 🛠️ Estructura del repositorio
 
-- `main`: rama principal con versiones estables del proyecto.
+- `main`: rama principal con la versión a entregar del proyecto.
 - `dev`: rama activa de desarrollo, donde se implementan y prueban las nuevas funcionalidades.
 
 ---
 
 ## 📌 Estado del proyecto
 
-🚧 **Estado:** En desarrollo.
+✔️ **Estado:** Completado, disponible para mejoras futuras.
 
 ---
 
