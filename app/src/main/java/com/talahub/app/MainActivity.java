@@ -18,9 +18,7 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.*;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -29,6 +27,16 @@ import com.squareup.picasso.Picasso;
 import com.talahub.app.databinding.ActivityMainBinding;
 import com.talahub.app.ui.ajustes.AjustesActivity;
 
+/**
+ * Actividad principal que gestiona la navegación dentro de la aplicación,
+ * incluyendo la carga dinámica de fragmentos según el rol del usuario
+ * (usuario normal o administrador).
+ *
+ * También gestiona la sesión del usuario y actualiza la información de cabecera
+ * en el menú lateral.
+ *
+ * @author Alberto Martínez Vadillo
+ */
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
@@ -36,6 +44,9 @@ public class MainActivity extends AppCompatActivity {
     private GoogleSignInClient mGoogleSignInClient;
     private boolean esAdmin = false;
 
+    /**
+     * Método llamado al crear la actividad. Verifica el rol del usuario y configura la navegación.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,12 +64,11 @@ public class MainActivity extends AppCompatActivity {
                             String rol = documentSnapshot.getString("rol");
                             esAdmin = "admin".equalsIgnoreCase(rol);
                         }
-
                         configurarNavegacion();
                     })
                     .addOnFailureListener(e -> configurarNavegacion());
         } else {
-            configurarNavegacion(); // fallback por si no hay usuario
+            configurarNavegacion(); // Fallback si no hay usuario
         }
 
         mGoogleSignInClient = GoogleSignIn.getClient(this,
@@ -67,14 +77,16 @@ public class MainActivity extends AppCompatActivity {
                         .build());
     }
 
+    /**
+     * Configura el menú de navegación lateral y los fragmentos visibles según el rol del usuario.
+     */
     private void configurarNavegacion() {
         DrawerLayout drawer = binding.drawerLayout;
         NavigationView navigationView = binding.navView;
-
         Menu menu = navigationView.getMenu();
 
         if (esAdmin) {
-            // Mostrar todos los ítems al admin
+            // Mostrar ítems adicionales para administradores
             menu.findItem(R.id.nav_destacados).setVisible(true);
             menu.findItem(R.id.nav_buscar).setVisible(true);
             menu.findItem(R.id.nav_agenda).setVisible(true);
@@ -86,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
                     .setOpenableLayout(drawer)
                     .build();
         } else {
-            // Mostrar solo los ítems de usuario normal
+            // Mostrar solo lo permitido para usuarios normales
             menu.findItem(R.id.nav_destacados).setVisible(true);
             menu.findItem(R.id.nav_buscar).setVisible(true);
             menu.findItem(R.id.nav_agenda).setVisible(true);
@@ -103,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, mAppBarConfiguration);
         NavigationUI.setupWithNavController(navigationView, navController);
 
+        // Cambiar título según sección
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
             int id = destination.getId();
             String page = null;
@@ -113,17 +126,11 @@ public class MainActivity extends AppCompatActivity {
             else if (id == R.id.nav_eventos) page = "Gestión de eventos";
             else if (id == R.id.nav_usuarios) page = "Gestión de usuarios";
 
-            if (page != null) {
-                getSupportActionBar().setTitle("TalaHub - " + page);
-            } else {
-                getSupportActionBar().setTitle("TalaHub");
-            }
+            getSupportActionBar().setTitle("TalaHub" + (page != null ? " - " + page : ""));
         });
 
-        // Mostrar info usuario
+        // Mostrar usuario y botón de logout
         actualizarHeaderUsuario();
-
-        // Logout
         View headerView = navigationView.getHeaderView(0);
         Button logoutButton = headerView.findViewById(R.id.logout_button);
         logoutButton.setOnClickListener(v -> {
@@ -134,8 +141,7 @@ public class MainActivity extends AppCompatActivity {
             });
         });
 
-        // Navegar directamente al fragmento adecuado
-        navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
+        // Navegación automática al fragmento inicial según el rol
         if (esAdmin) {
             NavOptions navOptions = new NavOptions.Builder()
                     .setPopUpTo(R.id.mobile_navigation, true)
@@ -144,6 +150,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Actualiza el header del menú lateral con los datos del usuario actual.
+     */
     private void actualizarHeaderUsuario() {
         NavigationView navigationView = binding.navView;
         View headerView = navigationView.getHeaderView(0);
@@ -173,12 +182,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Infla el menú de la barra de acciones.
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
+    /**
+     * Maneja acciones del menú, como abrir la actividad de ajustes.
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_settings) {
@@ -188,6 +203,9 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Maneja el resultado de otras actividades, como ajustes o navegación a agenda.
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -201,12 +219,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Soporte para el botón de navegación superior.
+     */
     @Override
     public boolean onSupportNavigateUp() {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         return NavigationUI.navigateUp(navController, mAppBarConfiguration) || super.onSupportNavigateUp();
     }
 
+    /**
+     * Maneja intents nuevos, especialmente si hay que abrir directamente la agenda.
+     */
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -223,6 +247,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Comportamiento personalizado del botón atrás. Si es admin, no cierra la app.
+     */
     @Override
     public void onBackPressed() {
         if (esAdmin) {
@@ -231,5 +258,4 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-
 }

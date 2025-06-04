@@ -16,8 +16,6 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -33,8 +31,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+/**
+ * Actividad que gestiona los ajustes de la aplicación, incluyendo:
+ * - Modo oscuro
+ * - Visibilidad del correo electrónico
+ * - Activación de notificaciones (con permisos)
+ * - Eliminación de cuenta del usuario actual
+ *
+ * También permite ver los términos y condiciones y guarda preferencias usando SharedPreferences.
+ * Utiliza FirebaseAuth y FirebaseFirestore para gestionar los datos del usuario.
+ *
+ * @author Alberto Martínez Vadillo
+ */
 public class AjustesActivity extends AppCompatActivity {
-
+    // Constantes de configuración y preferencias
     private static final int REQUEST_NOTIFICATION_PERMISSION = 1001;
     private static final String PREFS_NAME = "talahub_settings";
     private static final String KEY_SHOW_EMAIL = "show_email";
@@ -44,10 +54,14 @@ public class AjustesActivity extends AppCompatActivity {
     private ActivityAjustesBinding binding;
     private SharedPreferences prefs;
 
-    // --- Campos de Firebase ---
+    // Instancias de Firebase
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
+    /**
+     * Método principal llamado al iniciar la actividad.
+     * Configura la interfaz, carga las preferencias y establece los listeners de los switches.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,11 +75,10 @@ public class AjustesActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-        // Inicializar Firebase Auth y Firestore
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Recuperar y aplicar estado del switch de notificaciones
+        // Configuración de notificaciones
         boolean notificacionesActivadas = prefs.getBoolean(KEY_NOTIFICATIONS_ENABLED, false);
         binding.switchNotifications.setChecked(notificacionesActivadas);
 
@@ -78,7 +91,7 @@ public class AjustesActivity extends AppCompatActivity {
             }
         });
 
-        // Mostrar correo
+        // Mostrar u ocultar correo electrónico
         boolean mostrarCorreo = prefs.getBoolean(KEY_SHOW_EMAIL, true);
         binding.switchShowEmail.setChecked(mostrarCorreo);
         binding.switchShowEmail.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -86,7 +99,7 @@ public class AjustesActivity extends AppCompatActivity {
             Toast.makeText(this, "Mostrar correo: " + (isChecked ? "Sí" : "No"), Toast.LENGTH_SHORT).show();
         });
 
-        // Modo oscuro
+        // Configuración del modo oscuro
         boolean darkMode = prefs.getBoolean(KEY_DARK_MODE, false);
         binding.switchDarkMode.setChecked(darkMode);
         AppCompatDelegate.setDefaultNightMode(darkMode
@@ -100,17 +113,19 @@ public class AjustesActivity extends AppCompatActivity {
                     : AppCompatDelegate.MODE_NIGHT_NO);
         });
 
-        // Versión e idioma
+        // Información general
         binding.textVersion.setText("Versión: 1.0");
         binding.textIdioma.setText("Idioma: Español");
 
-        // Configurar botón "Eliminar cuenta"
+        // Botón para eliminar cuenta
         binding.buttonDeleteAccount.setOnClickListener(v -> {
             mostrarDialogoConfirmacionEliminar();
         });
 
+        // Botón para mostrar términos y condiciones
         binding.buttonTerminos.setOnClickListener(v -> mostrarDialogoTerminos());
 
+        // Deshabilitar opción de eliminar cuenta si es admin
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             String uid = currentUser.getUid();
@@ -121,8 +136,6 @@ public class AjustesActivity extends AppCompatActivity {
                             String rol = documentSnapshot.getString("rol");
                             if ("admin".equalsIgnoreCase(rol)) {
                                 binding.buttonDeleteAccount.setEnabled(false);
-
-                                // Estilizar para que se lea mejor aunque esté desactivado
                                 binding.buttonDeleteAccount.setBackgroundColor(Color.parseColor("#FFB3B3"));
                                 binding.buttonDeleteAccount.setTextColor(Color.parseColor("#80000000"));
                             }
@@ -134,6 +147,9 @@ public class AjustesActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Solicita el permiso POST_NOTIFICATIONS si es necesario en Android 13+.
+     */
     private void solicitarPermisoNotificaciones() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
@@ -149,6 +165,9 @@ public class AjustesActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Callback del sistema para recibir el resultado de una solicitud de permiso.
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -164,12 +183,18 @@ public class AjustesActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Maneja el comportamiento del botón de retroceso en la app bar.
+     */
     @Override
     public boolean onSupportNavigateUp() {
         finish();
         return true;
     }
 
+    /**
+     * Muestra un diálogo con los términos y condiciones cargados desde un archivo en assets.
+     */
     private void mostrarDialogoTerminos() {
         try {
             InputStream is = getAssets().open("terminos.txt");
@@ -192,7 +217,9 @@ public class AjustesActivity extends AppCompatActivity {
         }
     }
 
-
+    /**
+     * Muestra un diálogo de confirmación antes de eliminar la cuenta del usuario.
+     */
     private void mostrarDialogoConfirmacionEliminar() {
         new AlertDialog.Builder(this)
                 .setTitle("Eliminar cuenta")
@@ -204,6 +231,9 @@ public class AjustesActivity extends AppCompatActivity {
                 .show();
     }
 
+    /**
+     * Elimina todos los datos del usuario en Firestore y luego elimina el usuario de Firebase Auth.
+     */
     private void borrarCuentaYDatos() {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
@@ -212,11 +242,9 @@ public class AjustesActivity extends AppCompatActivity {
         }
         String uid = currentUser.getUid();
 
-        // 1) Eliminar documento en "usuarios/{uid}"
         DocumentReference usuarioRef = db.collection("usuarios").document(uid);
         usuarioRef.delete()
                 .addOnSuccessListener(aVoid -> {
-                    // 2) Eliminar todos los documentos en "agendas/{uid}/eventos"
                     CollectionReference eventosAgendadosRef = db
                             .collection("agendas")
                             .document(uid)
@@ -229,7 +257,6 @@ public class AjustesActivity extends AppCompatActivity {
                                         eventosAgendadosRef.document(doc.getId()).delete();
                                     }
                                 }
-                                // 3) Una vez borrados los datos de Firestore, borrar el usuario de Firebase Auth
                                 eliminarUsuarioAuth(currentUser);
                             })
                             .addOnFailureListener(e -> {
@@ -244,13 +271,14 @@ public class AjustesActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Elimina al usuario actual de Firebase Authentication y redirige a LoginActivity.
+     */
     private void eliminarUsuarioAuth(FirebaseUser user) {
         user.delete()
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Cuenta eliminada correctamente.", Toast.LENGTH_SHORT).show();
-                    // Limpiamos el stack y vamos a LoginActivity:
                     Intent intent = new Intent(AjustesActivity.this, LoginActivity.class);
-                    // Estas flags borran todas las activities anteriores:
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                 })

@@ -10,10 +10,23 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.talahub.app.R;
-
+/**
+ * TiempoActivity carga una WebView con la información meteorológica
+ * histórica para una fecha específica y una ubicación predeterminada (Talavera de la Reina).
+ *
+ * Esta actividad recibe una fecha en formato dd-MM-yyyy mediante un Intent y construye
+ * una URL para mostrar el clima correspondiente desde tiempo3.com.
+ *
+ * @author Alberto Martínez Vadillo
+ */
 public class TiempoActivity extends AppCompatActivity {
 
+    /**
+     * Método de ciclo de vida que se ejecuta al crear la actividad.
+     * Configura la WebView y carga la URL del clima basada en la fecha proporcionada.
+     *
+     * Se espera que la fecha llegue con el formato {@code dd-MM-yyyy}.
+     */
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,7 +43,7 @@ public class TiempoActivity extends AppCompatActivity {
 
                 String url = "https://www.tiempo3.com/europe/spain/castilla-la-mancha/talavera-de-la-reina?page=past-weather#day=" + dia + "&month=" + mes;
 
-                Log.d("TiempoURL", "Accediendo a: " + url); // ← Aquí ves la URL
+                Log.d("TiempoURL", "Accediendo a: " + url);
 
                 WebView webView = findViewById(R.id.webview_tiempo);
                 WebSettings settings = webView.getSettings();
@@ -39,8 +52,6 @@ public class TiempoActivity extends AppCompatActivity {
 
                 webView.setWebViewClient(new WebViewClient());
                 webView.loadUrl(url);
-
-
             } else {
                 Toast.makeText(this, "Formato de fecha inválido", Toast.LENGTH_SHORT).show();
                 finish();

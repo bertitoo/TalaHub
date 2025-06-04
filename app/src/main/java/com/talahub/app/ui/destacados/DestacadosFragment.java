@@ -12,8 +12,6 @@ import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
 
 import com.squareup.picasso.Picasso;
 import com.talahub.app.R;
@@ -23,12 +21,24 @@ import com.talahub.app.ui.eventos.EventoDetalleActivity;
 
 import java.util.List;
 
+/**
+ * Fragmento que muestra los eventos destacados.
+ * Utiliza Firebase para obtener eventos marcados como "destacados"
+ * y los renderiza dinámicamente en un layout lineal.
+ *
+ * Cada evento puede ser visualizado en detalle al pulsarlo.
+ *
+ * @author Alberto Martínez Vadillo
+ */
 public class DestacadosFragment extends Fragment {
 
     private LinearLayout layoutEventos;
     private FirebaseHelper firebaseHelper;
     private LayoutInflater layoutInflater;
 
+    /**
+     * Infla la vista del fragmento y prepara el entorno para mostrar eventos destacados.
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_destacados, container, false);
@@ -41,6 +51,9 @@ public class DestacadosFragment extends Fragment {
         return root;
     }
 
+    /**
+     * Solicita a Firebase los eventos destacados y llama a mostrarlos.
+     */
     private void cargarEventos() {
         firebaseHelper.obtenerEventosDestacados(
                 eventos -> mostrarEventos(eventos),
@@ -48,7 +61,16 @@ public class DestacadosFragment extends Fragment {
         );
     }
 
+    /**
+     * Muestra una lista de eventos en el layout.
+     * Incluye imagen, nombre, fecha/lugar y precio.
+     * También indica si el usuario está apuntado.
+     *
+     * @param eventos Lista de eventos destacados obtenidos desde Firebase.
+     */
     private void mostrarEventos(List<Evento> eventos) {
+        if (!isAdded() || getContext() == null) return;
+
         layoutEventos.removeAllViews();
         String uid = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
 
@@ -75,12 +97,13 @@ public class DestacadosFragment extends Fragment {
 
             tvApuntado.setVisibility(View.GONE);
             firebaseHelper.estaApuntadoAEvento(uid, evento.getId(), apuntado -> {
-                if (apuntado) {
+                if (isAdded() && apuntado) {
                     tvApuntado.setVisibility(View.VISIBLE);
                 }
             });
 
             tarjeta.setOnClickListener(v -> {
+                if (!isAdded()) return;
                 Intent intent = new Intent(getContext(), EventoDetalleActivity.class);
                 intent.putExtra("id", evento.getId());
                 intent.putExtra("nombre", evento.getNombre());
@@ -93,13 +116,18 @@ public class DestacadosFragment extends Fragment {
                 startActivity(intent);
             });
 
-            tarjeta.setClickable(true);
-            tarjeta.setForeground(ContextCompat.getDrawable(requireContext(), R.drawable.ripple_effect));
+            if (getContext() != null) {
+                tarjeta.setForeground(ContextCompat.getDrawable(getContext(), R.drawable.ripple_effect));
+            }
 
             layoutEventos.addView(tarjeta);
         }
     }
 
+    /**
+     * Se llama cuando el fragmento vuelve a estar activo.
+     * Se recargan los eventos para reflejar posibles cambios.
+     */
     @Override
     public void onResume() {
         super.onResume();

@@ -22,6 +22,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
@@ -31,15 +32,22 @@ import com.talahub.app.firebase.FirebaseHelper;
 import com.talahub.app.models.Evento;
 import com.talahub.app.ui.eventos.EventoDetalleActivity;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
+/**
+ * Fragmento encargado de la funcionalidad de búsqueda de eventos.
+ * Permite buscar por texto, aplicar filtros (fecha, hora, precio),
+ * y seleccionar un evento aleatorio.
+ *
+ * También incluye lógica para mostrar los eventos encontrados
+ * y abrir su detalle.
+ *
+ * @author Alberto Martínez Vadillo
+ */
 public class BuscarFragment extends Fragment {
 
     private static final String PREFS_NAME = "random_prefs";
@@ -51,15 +59,22 @@ public class BuscarFragment extends Fragment {
     private SharedPreferences prefs;
 
     private String filtroFechaInicio = "", filtroFechaFin = "", filtroHora = "", filtroPrecio = "";
+    private String filtroHoraInicio = "", filtroHoraFin = "";
 
     private EditText etBuscar;
 
+    /**
+     * Se llama al crear el fragmento. Inicializa las preferencias.
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         prefs = requireContext().getSharedPreferences(PREFS_NAME, 0);
     }
 
+    /**
+     * Infla la vista del fragmento, configura los listeners y carga los eventos desde Firebase.
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_buscar, container, false);
@@ -86,6 +101,7 @@ public class BuscarFragment extends Fragment {
 
         btnFiltros.setOnClickListener(v -> mostrarDialogoFiltros(inflater));
 
+        // Carga de eventos desde Firebase
         new FirebaseHelper().obtenerTodosLosEventos(eventos -> {
             eventosOriginales.clear();
             eventosOriginales.addAll(eventos);
@@ -103,6 +119,9 @@ public class BuscarFragment extends Fragment {
         return root;
     }
 
+    /**
+     * Selecciona un evento aleatorio distinto al último mostrado, y abre su detalle.
+     */
     private void lanzarEventoAleatorio() {
         if (eventosOriginales.isEmpty()) {
             Toast.makeText(getContext(), "Aún no hay eventos", Toast.LENGTH_SHORT).show();
@@ -125,6 +144,9 @@ public class BuscarFragment extends Fragment {
         abrirDetalle(elegido);
     }
 
+    /**
+     * Abre la pantalla de detalle de un evento.
+     */
     private void abrirDetalle(Evento evento) {
         Intent intent = new Intent(requireContext(), EventoDetalleActivity.class);
         intent.putExtra("id", evento.getId());
@@ -135,9 +157,12 @@ public class BuscarFragment extends Fragment {
         intent.putExtra("lugar", evento.getLugar());
         intent.putExtra("precio", evento.getPrecio());
         intent.putExtra("imagen", evento.getImagenUrl());
-        startActivity(intent);
+        startActivityForResult(intent, 101);
     }
 
+    /**
+     * Aplica los filtros activos y muestra los resultados filtrados.
+     */
     private void aplicarFiltros(LayoutInflater inflater) {
         String texto = etBuscar.getText().toString().trim();
 
@@ -153,6 +178,9 @@ public class BuscarFragment extends Fragment {
         );
     }
 
+    /**
+     * Muestra los resultados en el layout principal. Si no hay resultados, muestra un mensaje.
+     */
     private void mostrarResultados(List<Evento> eventos, LayoutInflater inflater) {
         layoutResultados.removeAllViews();
 
@@ -210,8 +238,9 @@ public class BuscarFragment extends Fragment {
         }
     }
 
-    private String filtroHoraInicio = "", filtroHoraFin = "";
-
+    /**
+     * Muestra el diálogo de filtros con campos de fecha, hora y precio.
+     */
     private void mostrarDialogoFiltros(LayoutInflater inflater) {
         View dialogView = inflater.inflate(R.layout.dialog_filtros, null);
         EditText etInicio = dialogView.findViewById(R.id.etFechaInicio);
@@ -225,7 +254,6 @@ public class BuscarFragment extends Fragment {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerPrecio.setAdapter(adapter);
 
-        // Prellenar filtros existentes
         etInicio.setText(filtroFechaInicio);
         etFin.setText(filtroFechaFin);
         etHoraInicio.setText(filtroHoraInicio);
@@ -233,7 +261,6 @@ public class BuscarFragment extends Fragment {
         int pos = List.of(opciones).indexOf(filtroPrecio);
         if (pos >= 0) spinnerPrecio.setSelection(pos);
 
-        // Pickers
         etInicio.setOnClickListener(v -> mostrarDatePicker(etInicio));
         etFin.setOnClickListener(v -> mostrarDatePicker(etFin));
         etHoraInicio.setOnClickListener(v -> mostrarTimePicker(etHoraInicio));
@@ -257,6 +284,9 @@ public class BuscarFragment extends Fragment {
                 .show();
     }
 
+    /**
+     * Muestra un selector de fecha y coloca el resultado en el EditText correspondiente.
+     */
     private void mostrarDatePicker(EditText target) {
         Calendar calendar = Calendar.getInstance();
         new DatePickerDialog(requireContext(), (view, y, m, d) -> {
@@ -265,7 +295,9 @@ public class BuscarFragment extends Fragment {
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
     }
 
-
+    /**
+     * Muestra un selector de hora y coloca el resultado en el EditText correspondiente.
+     */
     private void mostrarTimePicker(EditText target) {
         Calendar calendar = Calendar.getInstance();
         TimePickerDialog tp = new TimePickerDialog(requireContext(), (view, h, m) -> {
@@ -273,5 +305,17 @@ public class BuscarFragment extends Fragment {
             target.setText(hora);
         }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true);
         tp.show();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 101 && resultCode == AppCompatActivity.RESULT_OK) {
+            // Recarga los eventos aplicando los filtros activos
+            if (getView() != null) {
+                aplicarFiltros(LayoutInflater.from(getContext()));
+            }
+        }
     }
 }

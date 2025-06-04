@@ -13,26 +13,23 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.*;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.FirebaseApp;
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
-import com.google.firebase.auth.FirebaseAuthInvalidUserException;
-import com.google.firebase.auth.FirebaseAuthUserCollisionException;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.*;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Actividad de inicio de sesión y registro en la app TalaHub.
+ * Permite autenticación con correo/contraseña y Google.
+ *
+ * @author Alberto Martínez Vadillo
+ */
 public class LoginActivity extends AppCompatActivity {
 
     private static final int RC_SIGN_IN = 9001;
@@ -46,6 +43,10 @@ public class LoginActivity extends AppCompatActivity {
     private int logoClickCount = 0;
     private boolean bloquearAdmin = false;
 
+    /**
+     * Método que se ejecuta al crear la actividad.
+     * Configura los listeners y la lógica de autenticación.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,6 +61,7 @@ public class LoginActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_login);
 
+        // Inicialización de vistas
         emailInput = findViewById(R.id.editTextEmail);
         passwordInput = findViewById(R.id.editTextPassword);
         loginButton = findViewById(R.id.buttonLogin);
@@ -67,6 +69,7 @@ public class LoginActivity extends AppCompatActivity {
         googleButton = findViewById(R.id.sign_in_button);
         ImageView appLogo = findViewById(R.id.app_logo);
 
+        // Easter egg para login de administrador
         appLogo.setOnClickListener(v -> {
             if (bloquearAdmin) {
                 Toast.makeText(this, "Acceso denegado", Toast.LENGTH_SHORT).show();
@@ -80,6 +83,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        // Login con correo/contraseña
         loginButton.setOnClickListener(v -> {
             String email = emailInput.getText().toString().trim();
             String password = passwordInput.getText().toString().trim();
@@ -118,6 +122,7 @@ public class LoginActivity extends AppCompatActivity {
                     });
         });
 
+        // Registro con correo/contraseña
         registerButton.setOnClickListener(v -> {
             String email = emailInput.getText().toString().trim();
             String password = passwordInput.getText().toString().trim();
@@ -157,6 +162,7 @@ public class LoginActivity extends AppCompatActivity {
                     });
         });
 
+        // Configurar login con Google
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
@@ -170,6 +176,9 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Muestra el diálogo oculto para acceso del administrador.
+     */
     private void mostrarDialogoAdmin() {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_admin_login, null);
         EditText inputEmail = dialogView.findViewById(R.id.editTextAdminEmail);
@@ -191,7 +200,6 @@ public class LoginActivity extends AppCompatActivity {
                                     goToMain(true);
                                 })
                                 .addOnFailureListener(e -> {
-                                    // Si no existe la cuenta, la registramos automáticamente
                                     mAuth.createUserWithEmailAndPassword(realEmail, password)
                                             .addOnSuccessListener(authResult -> {
                                                 guardarUsuarioEnFirestore("admin");
@@ -213,6 +221,10 @@ public class LoginActivity extends AppCompatActivity {
                 .show();
     }
 
+    /**
+     * Navega a la actividad principal tras login correcto.
+     * @param esAdmin true si el usuario es administrador.
+     */
     private void goToMain(boolean esAdmin) {
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra("abrirEventosFragment", esAdmin);
@@ -220,6 +232,10 @@ public class LoginActivity extends AppCompatActivity {
         finish();
     }
 
+    /**
+     * Guarda información básica del usuario autenticado en Firestore.
+     * @param rol "usuario" o "admin".
+     */
     private void guardarUsuarioEnFirestore(String rol) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) return;
@@ -246,6 +262,9 @@ public class LoginActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Log.e("Login", "Error al guardar usuario", e));
     }
 
+    /**
+     * Resultado del login con Google. Si es exitoso, guarda al usuario y continúa.
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

@@ -11,20 +11,13 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.*;
 
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.appcompat.app.AlertDialog;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.squareup.picasso.Picasso;
 import com.talahub.app.R;
 import com.talahub.app.firebase.FirebaseHelper;
@@ -34,18 +27,25 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
+/**
+ * Fragmento que muestra al usuario la lista de eventos a los que está apuntado (su agenda).
+ * Permite buscar eventos por texto, eliminarlos de la agenda, compartirlos y exportarlos a PDF.
+ * Utiliza FirebaseAuth y FirebaseFirestore para manejar los datos del usuario.
+ *
+ * @author Alberto Martínez Vadillo
+ */
 public class AgendaFragment extends Fragment {
 
     private LinearLayout layoutEventosAgenda;
     private List<Evento> eventosOriginales = new ArrayList<>();
     private List<Evento> eventosFiltrados = new ArrayList<>();
 
+    /**
+     * Método que infla el layout del fragmento, carga la agenda del usuario y
+     * configura los listeners para búsqueda y exportación.
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_agenda, container, false);
@@ -58,23 +58,19 @@ public class AgendaFragment extends Fragment {
         cargarEventosAgenda(inflater);
 
         etBuscar.addTextChangedListener(new android.text.TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
                 filtrarEventosAgenda(s.toString().trim(), inflater);
             }
-
-            @Override
-            public void afterTextChanged(android.text.Editable s) {
-            }
+            @Override public void afterTextChanged(android.text.Editable s) {}
         });
 
         return root;
     }
 
+    /**
+     * Obtiene los eventos apuntados del usuario actual y actualiza la vista.
+     */
     private void cargarEventosAgenda(LayoutInflater inflater) {
         String uid = FirebaseAuth.getInstance().getCurrentUser() != null ?
                 FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
@@ -95,6 +91,12 @@ public class AgendaFragment extends Fragment {
         );
     }
 
+    /**
+     * Filtra los eventos por texto (nombre o lugar) y muestra los resultados.
+     *
+     * @param query     Texto de búsqueda.
+     * @param inflater  LayoutInflater para inflar las vistas de eventos.
+     */
     private void filtrarEventosAgenda(String query, LayoutInflater inflater) {
         eventosFiltrados.clear();
         for (Evento e : eventosOriginales) {
@@ -106,6 +108,13 @@ public class AgendaFragment extends Fragment {
         mostrarEventosAgenda(eventosFiltrados, inflater);
     }
 
+    /**
+     * Muestra en pantalla los eventos pasados como parámetro.
+     * Si la lista está vacía, se muestra un mensaje.
+     *
+     * @param eventos   Lista de eventos a mostrar.
+     * @param inflater  LayoutInflater para inflar las vistas.
+     */
     private void mostrarEventosAgenda(List<Evento> eventos, LayoutInflater inflater) {
         layoutEventosAgenda.removeAllViews();
 
@@ -119,9 +128,10 @@ public class AgendaFragment extends Fragment {
             return;
         }
 
-        Collections.sort(eventos, (a, b) -> getDateFromEvento(a.getFecha(), a.getHora()).compareTo(getDateFromEvento(b.getFecha(), b.getHora())));
+        List<Evento> eventosOrdenados = new ArrayList<>(eventos);
+        Collections.sort(eventosOrdenados, (a, b) -> getDateFromEvento(a.getFecha(), a.getHora()).compareTo(getDateFromEvento(b.getFecha(), b.getHora())));
 
-        for (Evento evento : eventos) {
+        for (Evento evento : eventosOrdenados) {
             View item = inflater.inflate(R.layout.item_evento_agenda, layoutEventosAgenda, false);
 
             TextView nombre = item.findViewById(R.id.tvAgendaNombreEvento);
@@ -150,13 +160,15 @@ public class AgendaFragment extends Fragment {
         }
     }
 
+    /**
+     * Exporta la agenda del usuario como un archivo PDF con los eventos listados.
+     */
     private void exportarAgendaComoPdf() {
         if (eventosOriginales.isEmpty()) {
             Toast.makeText(getContext(), "No hay eventos para exportar", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Obtener nombre del usuario y fecha actual
         String nombreUsuario = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getDisplayName()
                 : "Usuario";
@@ -247,6 +259,13 @@ public class AgendaFragment extends Fragment {
         }
     }
 
+    /**
+     * Elimina un evento de la agenda del usuario actual.
+     *
+     * @param eventoId  ID del evento a eliminar.
+     * @param itemView  Vista del item en la UI.
+     * @param inflater  LayoutInflater para recargar la lista.
+     */
     private void eliminarEventoDeAgenda(String eventoId, View itemView, LayoutInflater inflater) {
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         FirebaseHelper helper = new FirebaseHelper();
@@ -266,6 +285,11 @@ public class AgendaFragment extends Fragment {
         );
     }
 
+    /**
+     * Crea un intent para compartir un evento por otras apps.
+     *
+     * @param evento Evento a compartir.
+     */
     private void compartirEvento(Evento evento) {
         String mensaje = "¡Mira este evento!\n\n" +
                 "" + evento.getNombre() + "\n" +
@@ -280,9 +304,16 @@ public class AgendaFragment extends Fragment {
         startActivity(Intent.createChooser(shareIntent, "Compartir evento con..."));
     }
 
+    /**
+     * Convierte la fecha y hora de un evento en un objeto Date para ordenación.
+     *
+     * @param fecha Fecha del evento (formato dd/MM/yyyy).
+     * @param hora  Hora del evento (formato HH:mm).
+     * @return Objeto Date representando la fecha y hora.
+     */
     private Date getDateFromEvento(String fecha, String hora) {
         try {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
             return sdf.parse(fecha + " " + hora);
         } catch (Exception e) {
             return new Date();

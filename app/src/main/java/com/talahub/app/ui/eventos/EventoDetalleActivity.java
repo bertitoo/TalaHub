@@ -19,28 +19,34 @@ import androidx.core.app.NotificationCompat;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.squareup.picasso.Picasso;
 import com.talahub.app.MainActivity;
 import com.talahub.app.R;
 import com.talahub.app.TiempoActivity;
 import com.talahub.app.firebase.FirebaseHelper;
-import com.talahub.app.models.Evento;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+/**
+ * Actividad que muestra los detalles de un evento, permite apuntarse,
+ * ver información meteorológica y notifica al usuario si se apunta.
+ */
 public class EventoDetalleActivity extends AppCompatActivity {
 
     private MaterialButton btnApuntarse;
 
+    /**
+     * Método principal que se ejecuta al iniciar la actividad.
+     * Carga los detalles del evento desde el intent y configura las acciones de los botones.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_evento_detalle);
 
-        // Vistas
+        // Obtener referencias a vistas
         ImageView imagen = findViewById(R.id.detalle_imagen);
         TextView titulo = findViewById(R.id.detalle_titulo);
         TextView precio = findViewById(R.id.detalle_precio);
@@ -52,9 +58,10 @@ public class EventoDetalleActivity extends AppCompatActivity {
         MaterialButton btnVolver = findViewById(R.id.boton_volver);
         MaterialButton btnVerTiempo = findViewById(R.id.boton_ver_tiempo);
 
+        // Acción para volver atrás
         btnVolver.setOnClickListener(v -> onBackPressed());
 
-        // Datos recibidos
+        // Obtener datos del intent
         final String id = getIntent().getStringExtra("id");
         final String nombre = getIntent().getStringExtra("nombre");
         final String descripcionTexto = getIntent().getStringExtra("descripcion");
@@ -64,7 +71,7 @@ public class EventoDetalleActivity extends AppCompatActivity {
         final String precioTexto = getIntent().getStringExtra("precio");
         final String imagenUrl = getIntent().getStringExtra("imagen");
 
-        // Mostrar datos
+        // Mostrar los datos en pantalla
         titulo.setText(nombre);
         precio.setText("Precio: " + precioTexto);
         descripcion.setText(descripcionTexto);
@@ -73,10 +80,10 @@ public class EventoDetalleActivity extends AppCompatActivity {
         horaView.setText(hora);
         if (imagenUrl != null) Picasso.get().load(imagenUrl).into(imagen);
 
+        // Comprobar si el usuario está autenticado
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null && id != null) {
             String uid = user.getUid();
-            // Usamos FirebaseHelper para comprobar si está apuntado
             FirebaseHelper helper = new FirebaseHelper();
             helper.estaApuntadoAEvento(uid, id, apuntado -> {
                 if (apuntado) {
@@ -91,6 +98,7 @@ public class EventoDetalleActivity extends AppCompatActivity {
             );
         }
 
+        // Botón para ver el clima
         btnVerTiempo.setOnClickListener(v -> {
             Intent intent = new Intent(this, TiempoActivity.class);
             intent.putExtra("fecha", fecha);
@@ -98,15 +106,18 @@ public class EventoDetalleActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Muestra el botón "Apuntarme" y registra al usuario en el evento.
+     */
     private void mostrarBotonApuntarse(String uid, String id, String nombre, String descripcion,
                                        String fecha, String hora, String lugar, String precio, String imagenUrl) {
-
         btnApuntarse.setText("Apuntarme");
         btnApuntarse.setOnClickListener(v -> {
             FirebaseHelper helper = new FirebaseHelper();
             helper.apuntarseAEvento(id, uid,
                     aVoid -> {
                         Toast.makeText(this, "Te has apuntado al evento", Toast.LENGTH_SHORT).show();
+                        setResult(RESULT_OK);
                         mostrarBotonVerAgenda();
                         mostrarNotificacionEvento("¡Te has apuntado!", "Has confirmado tu asistencia a "
                                 + nombre + " el " + fecha);
@@ -116,6 +127,9 @@ public class EventoDetalleActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Reemplaza el botón "Apuntarme" por "Ver agenda" tras haberse apuntado.
+     */
     private void mostrarBotonVerAgenda() {
         btnApuntarse.setText("Ver agenda");
         btnApuntarse.setOnClickListener(v -> {
@@ -127,6 +141,9 @@ public class EventoDetalleActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Formatea la fecha a un formato largo y legible en español.
+     */
     private String formatearFecha(String fechaOriginal) {
         try {
             SimpleDateFormat formatoEntrada = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
@@ -138,6 +155,9 @@ public class EventoDetalleActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Muestra una notificación local indicando que el usuario se ha apuntado a un evento.
+     */
     private void mostrarNotificacionEvento(String titulo, String contenido) {
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {

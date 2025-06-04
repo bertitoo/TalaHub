@@ -11,7 +11,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -24,6 +23,15 @@ import com.talahub.app.models.Usuario;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Fragmento de administración que muestra todos los usuarios registrados.
+ * Permite editar su información y eliminar usuarios con rol "usuario".
+ * Los administradores no pueden eliminarse desde esta vista.
+ *
+ * Se actualiza en tiempo real mediante un listener de Firestore.
+ *
+ * @author Alberto Martínez Vadillo
+ */
 public class GestionUsuariosFragment extends Fragment {
 
     private LinearLayout layoutContenedor;
@@ -31,6 +39,14 @@ public class GestionUsuariosFragment extends Fragment {
     private String uidActual;
     private ListenerRegistration listenerUsuarios;
 
+    /**
+     * Infla el layout del fragmento y establece los componentes principales.
+     *
+     * @param inflater           Objeto para inflar vistas.
+     * @param container          Contenedor padre del fragmento.
+     * @param savedInstanceState Estado anterior si existe.
+     * @return Vista raíz del fragmento.
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_gestion_usuarios, container, false);
@@ -39,12 +55,20 @@ public class GestionUsuariosFragment extends Fragment {
         return root;
     }
 
+    /**
+     * Se llama cuando el fragmento entra en estado "resumido".
+     * Inicia la escucha activa de cambios en la colección de usuarios.
+     */
     @Override
     public void onResume() {
         super.onResume();
         iniciarListenerUsuarios();
     }
 
+    /**
+     * Se llama cuando el fragmento entra en estado "pausado".
+     * Detiene la escucha activa de cambios en Firestore.
+     */
     @Override
     public void onPause() {
         super.onPause();
@@ -53,12 +77,16 @@ public class GestionUsuariosFragment extends Fragment {
         }
     }
 
+    /**
+     * Inicia un listener en tiempo real sobre la colección "usuarios".
+     * Muestra una lista visual de todos los usuarios con controles de edición
+     * y eliminación (según su rol).
+     */
     private void iniciarListenerUsuarios() {
         FirebaseUser usuarioActual = FirebaseAuth.getInstance().getCurrentUser();
         if (usuarioActual == null) return;
 
         uidActual = usuarioActual.getUid();
-
         LayoutInflater inflater = LayoutInflater.from(getContext());
 
         listenerUsuarios = db.collection("usuarios")
@@ -88,14 +116,14 @@ public class GestionUsuariosFragment extends Fragment {
                         correo.setText(usuario.getCorreo());
                         imagen.setImageResource(R.drawable.user_placeholder);
 
-                        // Mostrar rol con "(tú)" si es el actual
+                        // Mostrar el rol y si es el usuario actual
                         if (usuario.getUid().equals(uidActual)) {
                             rol.setText("admin (tú)");
                         } else {
                             rol.setText(usuario.getRol());
                         }
 
-                        // Desactivar papelera si es admin
+                        // Configuración del botón de eliminar
                         if ("admin".equalsIgnoreCase(usuario.getRol())) {
                             btnEliminar.setColorFilter(getResources().getColor(R.color.texto_secundario));
                             btnEliminar.setEnabled(false);
@@ -108,9 +136,8 @@ public class GestionUsuariosFragment extends Fragment {
                                             db.collection("usuarios")
                                                     .document(usuario.getUid())
                                                     .delete()
-                                                    .addOnSuccessListener(aVoid -> {
-                                                        Toast.makeText(getContext(), "Usuario eliminado", Toast.LENGTH_SHORT).show();
-                                                    })
+                                                    .addOnSuccessListener(aVoid ->
+                                                            Toast.makeText(getContext(), "Usuario eliminado", Toast.LENGTH_SHORT).show())
                                                     .addOnFailureListener(error ->
                                                             Toast.makeText(getContext(), "Error al eliminar", Toast.LENGTH_SHORT).show());
                                         })
@@ -119,6 +146,7 @@ public class GestionUsuariosFragment extends Fragment {
                             });
                         }
 
+                        // Acción de editar usuario
                         card.setOnClickListener(v -> {
                             Intent intent = new Intent(getContext(), EditarUsuarioActivity.class);
                             intent.putExtra("uid", usuario.getUid());
@@ -128,9 +156,9 @@ public class GestionUsuariosFragment extends Fragment {
                             startActivity(intent);
                         });
 
-                        // Insertar en la posición correcta
+                        // Añadir según prioridad visual
                         if (usuario.getUid().equals(uidActual)) {
-                            admins.add(0, card); // el admin actual primero
+                            admins.add(0, card); // actual primero
                         } else if ("admin".equalsIgnoreCase(usuario.getRol())) {
                             admins.add(card);
                         } else {

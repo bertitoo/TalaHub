@@ -10,7 +10,6 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.talahub.app.models.Evento;
-import com.talahub.app.models.Usuario;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -22,17 +21,34 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 
+/**
+ * Clase de utilidad para gestionar operaciones con Firebase Firestore
+ * relacionadas con la colección de eventos y la agenda de usuarios.
+ *
+ * Proporciona métodos para obtener eventos, filtrar, apuntarse o quitarse
+ * de eventos, y comprobar estado de inscripción.
+ *
+ * @author Alberto Martínez Vadillo
+ */
 public class FirebaseHelper {
 
     private static final String TAG = "FirebaseHelper";
     private static final String COLLECTION_EVENTOS = "eventos";
     private final FirebaseFirestore db;
 
+    /**
+     * Constructor que inicializa la instancia de FirebaseFirestore.
+     */
     public FirebaseHelper() {
         db = FirebaseFirestore.getInstance();
     }
 
-    /** Sigue igual: carga eventos destacados desde /eventos */
+    /**
+     * Obtiene los eventos marcados como destacados en la base de datos.
+     *
+     * @param onSuccess Callback para manejar la lista de eventos destacados.
+     * @param onFailure Callback para manejar errores.
+     */
     public void obtenerEventosDestacados(Consumer<List<Evento>> onSuccess, Consumer<String> onFailure) {
         db.collection(COLLECTION_EVENTOS)
                 .whereEqualTo("destacado", true)
@@ -55,7 +71,12 @@ public class FirebaseHelper {
                 });
     }
 
-    /** Sigue igual: carga todos los eventos desde /eventos */
+    /**
+     * Obtiene todos los eventos registrados en la base de datos.
+     *
+     * @param onSuccess Callback que recibe la lista de eventos.
+     * @param onFailure Callback para manejar errores.
+     */
     public void obtenerTodosLosEventos(Consumer<List<Evento>> onSuccess, Consumer<String> onFailure) {
         db.collection(COLLECTION_EVENTOS)
                 .get()
@@ -78,8 +99,13 @@ public class FirebaseHelper {
     }
 
     /**
-     * Apuntar al evento: ahora guardamos solo un campo mínimo en
-     * /usuarios/{uid}/agenda/{eventoId}, sin duplicar todo el objeto Evento.
+     * Registra al usuario en un evento.
+     * Guarda el ID del evento y la marca de tiempo en la subcolección /agenda.
+     *
+     * @param eventoId  ID del evento.
+     * @param uid       ID del usuario.
+     * @param onSuccess Callback de éxito.
+     * @param onFailure Callback de error.
      */
     public void apuntarseAEvento(String eventoId, String uid,
                                  OnSuccessListener<Void> onSuccess,
@@ -97,7 +123,11 @@ public class FirebaseHelper {
     }
 
     /**
-     * Comprobar si existe /usuarios/{uid}/agenda/{eventoId}
+     * Verifica si el usuario está apuntado a un evento específico.
+     *
+     * @param uid      ID del usuario.
+     * @param eventoId ID del evento.
+     * @param callback Callback con resultado booleano.
      */
     public void estaApuntadoAEvento(String uid, String eventoId, Consumer<Boolean> callback) {
         db.collection("usuarios")
@@ -118,10 +148,12 @@ public class FirebaseHelper {
     }
 
     /**
-     * Obtener la lista de Eventos (completos) a los que el usuario está apuntado.
-     * Pasos:
-     *  1) Leer /usuarios/{uid}/agenda → lista de IDs de eventos.
-     *  2) Con un whereIn a /eventos traigo los datos completos.
+     * Obtiene la lista completa de eventos a los que el usuario está apuntado.
+     * Realiza una consulta a la subcolección /agenda y luego una búsqueda en /eventos.
+     *
+     * @param uid       ID del usuario.
+     * @param onSuccess Callback con la lista de eventos.
+     * @param onFailure Callback en caso de error.
      */
     public void obtenerEventosEnAgenda(String uid, Consumer<List<Evento>> onSuccess, Consumer<String> onFailure) {
         db.collection("usuarios")
@@ -141,7 +173,6 @@ public class FirebaseHelper {
                         ids.add(doc.getId());
                     }
 
-                    // Segundo paso: leer datos reales de /eventos
                     db.collection("eventos")
                             .whereIn(FieldPath.documentId(), ids)
                             .get()
@@ -169,17 +200,13 @@ public class FirebaseHelper {
                 });
     }
 
-    /** Guardar/editar perfil de usuario sigue igual en /usuarios/{uid} */
-    public void guardarUsuario(Usuario usuario) {
-        db.collection("usuarios")
-                .document(usuario.getUid())
-                .set(usuario)
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "Usuario guardado"))
-                .addOnFailureListener(e -> Log.e(TAG, "Error al guardar usuario", e));
-    }
-
     /**
-     * (Opcional) Dar de baja un apunte: borra /usuarios/{uid}/agenda/{eventoId}
+     * Elimina el apunte de un usuario a un evento.
+     *
+     * @param eventoId  ID del evento.
+     * @param uid       ID del usuario.
+     * @param onSuccess Callback de éxito.
+     * @param onFailure Callback de error.
      */
     public void quitarApunteEvento(String eventoId, String uid,
                                    OnSuccessListener<Void> onSuccess,
@@ -193,6 +220,19 @@ public class FirebaseHelper {
                 .addOnFailureListener(onFailure);
     }
 
+    /**
+     * Busca eventos que coincidan con los filtros proporcionados:
+     * texto (nombre/lugar/descripcion), fecha, hora y precio.
+     *
+     * @param texto        Texto a buscar.
+     * @param fechaInicio  Fecha mínima (formato dd-MM-yyyy).
+     * @param fechaFin     Fecha máxima (formato dd-MM-yyyy).
+     * @param horaInicio   Hora mínima (formato HH:mm).
+     * @param horaFin      Hora máxima (formato HH:mm).
+     * @param precioFiltro Filtro de precio ("Gratis", "0 - 4,99 €", "5 € o más").
+     * @param onSuccess    Callback con la lista de eventos filtrados.
+     * @param onFailure    Callback en caso de error.
+     */
     public void buscarEventosFiltrados(String texto, String fechaInicio, String fechaFin, String horaInicio, String horaFin, String precioFiltro,
                                        Consumer<List<Evento>> onSuccess, Consumer<String> onFailure) {
 
@@ -215,10 +255,12 @@ public class FirebaseHelper {
                             Date fechaEvento = sdf.parse(e.getFecha());
                             if (!fechaInicio.isEmpty()) {
                                 Date inicio = sdf.parse(fechaInicio);
+                                assert fechaEvento != null;
                                 if (fechaEvento.before(inicio)) coincideFecha = false;
                             }
                             if (!fechaFin.isEmpty()) {
                                 Date fin = sdf.parse(fechaFin);
+                                assert fechaEvento != null;
                                 if (fechaEvento.after(fin)) coincideFecha = false;
                             }
                         } catch (ParseException ex) {
@@ -232,10 +274,12 @@ public class FirebaseHelper {
 
                             if (!horaInicio.isEmpty()) {
                                 Date inicio = sdfHora.parse(horaInicio);
+                                assert horaEvento != null;
                                 if (horaEvento.before(inicio)) coincideHora = false;
                             }
                             if (!horaFin.isEmpty()) {
                                 Date fin = sdfHora.parse(horaFin);
+                                assert horaEvento != null;
                                 if (horaEvento.after(fin)) coincideHora = false;
                             }
                         } catch (Exception ex) {
@@ -252,7 +296,7 @@ public class FirebaseHelper {
                                 case "Gratis": coincidePrecio = precio == 0; break;
                                 case "0 - 4,99 €": coincidePrecio = precio > 0 && precio <= 4.99; break;
                                 case "5 € o más": coincidePrecio = precio >= 5; break;
-                                default: coincidePrecio = true;
+                                default:
                             }
                         } catch (Exception ignored) {}
 

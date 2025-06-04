@@ -23,12 +23,29 @@ import com.talahub.app.models.Evento;
 
 import java.util.List;
 
+/**
+ * Fragmento que permite a administradores visualizar, editar y eliminar
+ * eventos desde la interfaz administrativa.
+ *
+ * Utiliza Firebase Firestore para obtener y modificar los datos.
+ * Cada evento se muestra como una tarjeta con controles de edición y borrado.
+ *
+ * @author Alberto Martínez Vadillo
+ */
 public class GestionEventosFragment extends Fragment {
 
     private static final int REQUEST_EDIT_EVENTO = 1001;
     private LinearLayout layoutContenedor;
     private final FirebaseHelper firebaseHelper = new FirebaseHelper();
 
+    /**
+     * Crea e infla el layout del fragmento. Inicia la carga de eventos.
+     *
+     * @param inflater           Objeto para inflar layouts.
+     * @param container          Contenedor padre del fragmento.
+     * @param savedInstanceState Estado guardado (si lo hay).
+     * @return Vista raíz del fragmento.
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_eventos, container, false);
@@ -37,9 +54,15 @@ public class GestionEventosFragment extends Fragment {
         return root;
     }
 
+    /**
+     * Carga los eventos desde Firestore y genera tarjetas visuales para cada uno.
+     * Cada tarjeta incluye opciones para editar o eliminar el evento.
+     *
+     * @param inflater Usado para inflar las vistas de eventos.
+     */
     private void cargarEventos(LayoutInflater inflater) {
         firebaseHelper.obtenerTodosLosEventos(eventos -> {
-                    layoutContenedor.removeAllViews();
+                    layoutContenedor.removeAllViews();  // Limpiar antes de repintar
                     for (Evento evento : eventos) {
                         View card = inflater.inflate(R.layout.item_evento_admin, layoutContenedor, false);
 
@@ -58,6 +81,7 @@ public class GestionEventosFragment extends Fragment {
                             imagen.setImageResource(R.drawable.user_placeholder);
                         }
 
+                        // Acciones de los botones
                         btnEditar.setOnClickListener(v -> {
                             Intent intent = new Intent(getContext(), EditarEventoActivity.class);
                             intent.putExtra("id", evento.getId());
@@ -80,7 +104,7 @@ public class GestionEventosFragment extends Fragment {
                                                 .delete()
                                                 .addOnSuccessListener(aVoid -> {
                                                     Toast.makeText(getContext(), "Evento eliminado", Toast.LENGTH_SHORT).show();
-                                                    cargarEventos(inflater);
+                                                    cargarEventos(inflater);  // Recargar tras eliminar
                                                 })
                                                 .addOnFailureListener(e ->
                                                         Toast.makeText(getContext(), "Error al eliminar", Toast.LENGTH_SHORT).show()
@@ -97,11 +121,18 @@ public class GestionEventosFragment extends Fragment {
         );
     }
 
+    /**
+     * Método llamado al volver desde una actividad de edición.
+     * Si se editó un evento con éxito, recarga la lista.
+     *
+     * @param requestCode Código de solicitud enviado.
+     * @param resultCode  Código de resultado devuelto.
+     * @param data        Intent de datos (si aplica).
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_EDIT_EVENTO && resultCode == Activity.RESULT_OK) {
-            // Si se actualizó algo, recargamos la lista
             cargarEventos(LayoutInflater.from(getContext()));
         }
     }
